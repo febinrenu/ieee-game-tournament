@@ -147,13 +147,14 @@
         </div>
     </div>
 
+    <script src="constants.js"></script>
     <script>
         function checkServerStatus() {
             const statusDiv = document.getElementById('server-status');
             statusDiv.textContent = 'Checking server...';
             statusDiv.className = 'status status-unknown';
 
-            fetch('http://localhost:3000/api/health')
+            fetch(getApiUrl(CONFIG.ENDPOINTS.HEALTH))
                 .then(response => {
                     if (response.ok) {
                         return response.json();

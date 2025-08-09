@@ -1,7 +1,7 @@
 // Game Configuration
 const gameConfig = {
     totalTimeLimit: 600000, // 10 minutes in milliseconds
-    serverUrl: 'http://localhost:10106', // Backend server URL
+    serverUrl: CONFIG.API_BASE_URL, // Backend server URL from constants
     levels: [
         {
             id: 1,

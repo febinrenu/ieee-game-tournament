@@ -319,7 +319,7 @@
         function testConnection() {
             showAlert('auth-status', 'Testing connection to server...', 'warning');
             
-            fetch('http://localhost:10106/api/health')
+            fetch(getApiUrl(CONFIG.ENDPOINTS.HEALTH))
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`Server responded with status: ${response.status}`);
@@ -350,7 +350,7 @@
             // First test basic connectivity
             showAlert('auth-status', 'Testing connection...', 'warning');
             
-            fetch('http://localhost:10106/api/health')
+            fetch(getApiUrl(CONFIG.ENDPOINTS.HEALTH))
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`Server responded with status: ${response.status}`);
@@ -361,7 +361,7 @@
                     // Server is responding, now test admin authentication
                     showAlert('auth-status', 'Server connected. Checking admin key...', 'warning');
                     
-                    return fetch('http://localhost:10106/api/admin/backup?key=' + encodeURIComponent(adminKey));
+                    return fetch(getApiUrl(CONFIG.ENDPOINTS.ADMIN.BACKUP + '?key=' + encodeURIComponent(adminKey)));
                 })
                 .then(response => {
                     if (response.status === 403) {
@@ -392,7 +392,7 @@
         function loadStats() {
             if (!isAuthenticated) return;
 
-            fetch('http://localhost:10106/api/stats')
+            fetch(getApiUrl(CONFIG.ENDPOINTS.STATS))
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -432,7 +432,7 @@
             if (!isAuthenticated) return;
 
             const link = document.createElement('a');
-            link.href = `http://localhost:10106/api/admin/backup?key=${encodeURIComponent(adminKey)}`;
+            link.href = getApiUrl(CONFIG.ENDPOINTS.ADMIN.BACKUP + `?key=${encodeURIComponent(adminKey)}`);
             link.download = `tournament_backup_${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(link);
             link.click();
@@ -455,7 +455,7 @@
                 return;
             }
 
-            fetch(`http://localhost:10106/api/admin/clear-student?key=${encodeURIComponent(adminKey)}&reg=${encodeURIComponent(regNumber)}`, {
+            fetch(getApiUrl(CONFIG.ENDPOINTS.ADMIN.CLEAR_STUDENT + `?key=${encodeURIComponent(adminKey)}&reg=${encodeURIComponent(regNumber)}`), {
                 method: 'DELETE'
             })
             .then(response => response.json())
@@ -479,7 +479,7 @@
             if (confirm('Quick Clear: Delete all tournament data?\n\nThis is faster than the full confirmation process.\n\nClick OK to proceed or Cancel to abort.')) {
                 showAlert('clear-status', 'Clearing all tournament data...', 'warning');
 
-                fetch(`http://localhost:10106/api/admin/clear-all?key=${encodeURIComponent(adminKey)}`, {
+                fetch(getApiUrl(CONFIG.ENDPOINTS.ADMIN.CLEAR_ALL + `?key=${encodeURIComponent(adminKey)}`), {
                     method: 'DELETE'
                 })
                 .then(response => response.json())
@@ -531,7 +531,7 @@
 
             showAlert('clear-status', 'Deleting all tournament data...', 'warning');
 
-            fetch(`http://localhost:10106/api/admin/clear-all?key=${encodeURIComponent(adminKey)}`, {
+            fetch(getApiUrl(CONFIG.ENDPOINTS.ADMIN.CLEAR_ALL + `?key=${encodeURIComponent(adminKey)}`), {
                 method: 'DELETE'
             })
             .then(response => response.json())
@@ -566,5 +566,7 @@
             document.getElementById('admin-key').focus();
         });
     </script>
+
+    <script src="constants.js"></script>
 </body>
 </html>
