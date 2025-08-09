@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IEEE Tournament - Admin Panel</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --danger-color: #dc2626;
+            --success-color: #16a34a;
+            --warning-color: #ca8a04;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .admin-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .admin-card h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .admin-card p {
+            color: #64748b;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #15803d;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #a16207;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-warning {
+            background: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .warning-box {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box strong {
+            color: #92400e;
+        }
+
+        @media (max-width: 768px) {
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🛠️ IEEE Tournament Admin Panel</h1>
+        <p>Database Management & Administration</p>
+    </header>
+
+    <div class="container">
+        <!-- Authentication -->
+        <div class="admin-card" id="auth-section">
+            <h2>🔐 Admin Authentication</h2>
+            <p>Enter the admin key to access database management functions.</p>
+            
+            <div class="form-group">
+                <label for="admin-key" class="form-label">Admin Key</label>
+                <input type="password" id="admin-key" class="form-control" placeholder="Enter admin key">
+            </div>
+            
+            <div class="btn-group">
+                <button onclick="testConnection()" class="btn btn-warning">Test Connection</button>
+                <button onclick="authenticate()" class="btn btn-primary">Authenticate</button>
+            </div>
+            
+            <div id="auth-status"></div>
+        </div>
+
+        <!-- Admin Functions (Hidden until authenticated) -->
+        <div id="admin-functions" style="display: none;">
+            
+            <!-- Statistics -->
+            <div class="admin-card">
+                <h2>📊 Tournament Statistics</h2>
+                <button onclick="loadStats()" class="btn btn-primary">Refresh Stats</button>
+                
+                <div id="stats-container">
+                    <div class="stats-grid" id="stats-grid">
+                        <!-- Stats will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Backup -->
+            <div class="admin-card">
+                <h2>💾 Database Backup</h2>
+                <p>Download a complete backup of all tournament data in JSON format.</p>
+                
+                <button onclick="downloadBackup()" class="btn btn-success">Download Backup</button>
+            </div>
+
+            <!-- Clear Specific Student -->
+            <div class="admin-card">
+                <h2>🗑️ Remove Student Record</h2>
+                <p>Remove a specific student's record from the database.</p>
+                
+                <div class="form-group">
+                    <label for="student-reg" class="form-label">Student Registration Number</label>
+                    <input type="text" id="student-reg" class="form-control" placeholder="Enter registration number">
+                </div>
+                
+                <button onclick="clearStudent()" class="btn btn-warning">Remove Student</button>
+                
+                <div id="student-status"></div>
+            </div>
+
+            <!-- Clear All Data -->
+            <div class="admin-card">
+                <h2>⚠️ Clear All Tournament Data</h2>
+                
+                <div class="warning-box">
+                    <strong>⚠️ DANGER ZONE:</strong> This action will permanently delete ALL tournament data including scores, registrations, and statistics. This cannot be undone!
+                </div>
+                
+                <p>Before clearing all data, it's recommended to download a backup first.</p>
+                
+                <div class="btn-group">
+                    <button onclick="downloadBackup()" class="btn btn-success">Backup First</button>
+                    <button onclick="quickClear()" class="btn btn-warning">Quick Clear</button>
+                    <button onclick="confirmClearAll()" class="btn btn-danger">Clear All Data</button>
+                </div>
+                
+                <div id="clear-status"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let adminKey = '';
+        let isAuthenticated = false;
+
+        function testConnection() {
+            showAlert('auth-status', 'Testing connection to server...', 'warning');
+            
+            fetch('/api/health')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server responded with status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    showAlert('auth-status', `✓ Server is running! Status: ${data.message}`, 'success');
+                })
+                .catch(error => {
+                    console.error('Connection test failed:', error);
+                    if (error.message.includes('Failed to fetch')) {
+                        showAlert('auth-status', '✗ Cannot connect to server. Please ensure the server is running on http://localhost:3000', 'error');
+                    } else {
+                        showAlert('auth-status', `✗ Connection failed: ${error.message}`, 'error');
+                    }
+                });
+        }
+
+        function authenticate() {
+            adminKey = document.getElementById('admin-key').value.trim();
+            
+            if (!adminKey) {
+                showAlert('auth-status', 'Please enter the admin key.', 'error');
+                return;
+            }
+
+            // First test basic connectivity
+            showAlert('auth-status', 'Testing connection...', 'warning');
+            
+            fetch('/api/health')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server responded with status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(healthData => {
+                    // Server is responding, now test admin authentication
+                    showAlert('auth-status', 'Server connected. Checking admin key...', 'warning');
+                    
+                    return fetch('/api/admin/backup?key=' + encodeURIComponent(adminKey));
+                })
+                .then(response => {
+                    if (response.status === 403) {
+                        throw new Error('Invalid admin key. Please check the key and try again.');
+                    }
+                    if (!response.ok) {
+                        throw new Error(`Authentication failed with status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    isAuthenticated = true;
+                    showAlert('auth-status', 'Authentication successful! Admin panel unlocked.', 'success');
+                    document.getElementById('admin-functions').style.display = 'block';
+                    document.getElementById('auth-section').style.display = 'none';
+                    loadStats();
+                })
+                .catch(error => {
+                    console.error('Authentication error:', error);
+                    if (error.message.includes('Failed to fetch')) {
+                        showAlert('auth-status', 'Cannot connect to server. Please make sure the server is running on http://localhost:3000', 'error');
+                    } else {
+                        showAlert('auth-status', 'Authentication failed: ' + error.message, 'error');
+                    }
+                });
+        }
+
+        function loadStats() {
+            if (!isAuthenticated) return;
+
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayStats(data.stats);
+                    } else {
+                        showAlert('stats-container', 'Error loading statistics.', 'error');
+                    }
+                })
+                .catch(error => {
+                    showAlert('stats-container', 'Error connecting to server.', 'error');
+                });
+        }
+
+        function displayStats(stats) {
+            const statsGrid = document.getElementById('stats-grid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${stats.total_participants || 0}</div>
+                    <div class="stat-label">Total Participants</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.highest_score || 0}</div>
+                    <div class="stat-label">Highest Score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Math.round(stats.average_score || 0)}</div>
+                    <div class="stat-label">Average Score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Math.round((stats.average_accuracy || 0) * 100)}%</div>
+                    <div class="stat-label">Average Accuracy</div>
+                </div>
+            `;
+        }
+
+        function downloadBackup() {
+            if (!isAuthenticated) return;
+
+            const link = document.createElement('a');
+            link.href = `/api/admin/backup?key=${encodeURIComponent(adminKey)}`;
+            link.download = `tournament_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showAlert('clear-status', 'Backup download started!', 'success');
+        }
+
+        function clearStudent() {
+            if (!isAuthenticated) return;
+
+            const regNumber = document.getElementById('student-reg').value.trim();
+            
+            if (!regNumber) {
+                showAlert('student-status', 'Please enter a registration number.', 'error');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete the record for student: ${regNumber}?`)) {
+                return;
+            }
+
+            fetch(`/api/admin/clear-student?key=${encodeURIComponent(adminKey)}&reg=${encodeURIComponent(regNumber)}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('student-status', data.message, 'success');
+                    document.getElementById('student-reg').value = '';
+                    loadStats(); // Refresh stats
+                } else {
+                    showAlert('student-status', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showAlert('student-status', 'Error connecting to server.', 'error');
+            });
+        }
+
+        function quickClear() {
+            if (!isAuthenticated) return;
+
+            if (confirm('Quick Clear: Delete all tournament data?\n\nThis is faster than the full confirmation process.\n\nClick OK to proceed or Cancel to abort.')) {
+                showAlert('clear-status', 'Clearing all tournament data...', 'warning');
+
+                fetch(`/api/admin/clear-all?key=${encodeURIComponent(adminKey)}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('clear-status', '✓ All tournament data cleared successfully!', 'success');
+                        loadStats(); // Refresh stats
+                    } else {
+                        showAlert('clear-status', 'Error: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showAlert('clear-status', 'Error connecting to server.', 'error');
+                });
+            } else {
+                showAlert('clear-status', 'Quick clear cancelled.', 'warning');
+            }
+        }
+
+        function confirmClearAll() {
+            if (!isAuthenticated) return;
+
+            // Show a more user-friendly confirmation dialog
+            const userConfirmed = confirm(
+                'WARNING: This will permanently delete ALL tournament data!\n\n' +
+                '• All student scores will be lost\n' +
+                '• All registration records will be deleted\n' +
+                '• All tournament statistics will be erased\n\n' +
+                'This action CANNOT be undone!\n\n' +
+                'Are you sure you want to continue?'
+            );
+            
+            if (!userConfirmed) {
+                showAlert('clear-status', 'Operation cancelled. Data not deleted.', 'warning');
+                return;
+            }
+
+            // Second confirmation for extra safety
+            const finalConfirmation = prompt(
+                'FINAL CONFIRMATION:\n\n' +
+                'Type exactly: DELETE ALL DATA\n' +
+                '(case sensitive, include spaces)'
+            );
+            
+            if (finalConfirmation !== 'DELETE ALL DATA') {
+                showAlert('clear-status', 'Operation cancelled. You must type "DELETE ALL DATA" exactly as shown.', 'warning');
+                return;
+            }
+
+            showAlert('clear-status', 'Deleting all tournament data...', 'warning');
+
+            fetch(`/api/admin/clear-all?key=${encodeURIComponent(adminKey)}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('clear-status', 'All tournament data has been permanently deleted!', 'success');
+                    loadStats(); // Refresh stats
+                } else {
+                    showAlert('clear-status', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showAlert('clear-status', 'Error connecting to server.', 'error');
+            });
+        }
+
+        function showAlert(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        // Load stats on page load if authenticated
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-focus on admin key input
+            document.getElementById('admin-key').focus();
+        });
+    </script>
+</body>
+</html>

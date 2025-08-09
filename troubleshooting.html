@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Server - Troubleshooting Guide</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2563eb; }
+        h2 { color: #1e40af; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+        .step { background: #f9fafb; padding: 15px; margin: 10px 0; border-left: 4px solid #10b981; }
+        .warning { background: #fef3c7; padding: 15px; margin: 10px 0; border-left: 4px solid #f59e0b; }
+        .error { background: #fef2f2; padding: 15px; margin: 10px 0; border-left: 4px solid #ef4444; }
+        .success { background: #f0fdf4; padding: 15px; margin: 10px 0; border-left: 4px solid #22c55e; }
+        code { background: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace; }
+        .btn {
+            background: #2563eb;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover { background: #1d4ed8; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .status-unknown { background: #f3f4f6; }
+        .status-ok { background: #dcfce7; color: #166534; }
+        .status-error { background: #fef2f2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 IEEE Tournament Server - Troubleshooting Guide</h1>
+        
+        <div class="warning">
+            <strong>Quick Fix:</strong> If you're getting "Authentication failed: Failed to fetch", the server is likely not running or not accessible.
+        </div>
+
+        <h2>🚀 Step 1: Check Server Status</h2>
+        <div class="step">
+            <button class="btn" onclick="checkServerStatus()">Test Server Connection</button>
+            <div id="server-status" class="status status-unknown">Click the button above to test server connection</div>
+        </div>
+
+        <h2>📋 Step 2: Start/Restart Server</h2>
+        <div class="step">
+            <p><strong>Method 1: Using start-server.bat</strong></p>
+            <ol>
+                <li>Navigate to: <code>c:\Users\fkr77\Downloads\ieee-game-tournament\</code></li>
+                <li>Double-click <code>start-server.bat</code></li>
+                <li>Wait for "Tournament server running" message</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <p><strong>Method 2: Command Line</strong></p>
+            <ol>
+                <li>Open Command Prompt</li>
+                <li>Navigate to tournament folder: <code>cd "c:\Users\fkr77\Downloads\ieee-game-tournament"</code></li>
+                <li>Run: <code>node server.js</code></li>
+            </ol>
+        </div>
+
+        <h2>🔑 Step 3: Admin Authentication</h2>
+        <div class="step">
+            <p><strong>Admin Key:</strong> <code>IEEE2025ADMIN</code></p>
+            <p><strong>Admin Panel URL:</strong> <a href="http://localhost:3000/admin.html" target="_blank">http://localhost:3000/admin.html</a></p>
+        </div>
+
+        <h2>🌐 Step 4: URL Access Guide</h2>
+        <div class="success">
+            <h4>✓ Correct URLs (through server):</h4>
+            <ul>
+                <li>Game: <a href="http://localhost:3000/index.html" target="_blank">http://localhost:3000/index.html</a></li>
+                <li>Leaderboard: <a href="http://localhost:3000/leaderboard.html" target="_blank">http://localhost:3000/leaderboard.html</a></li>
+                <li>Admin Panel: <a href="http://localhost:3000/admin.html" target="_blank">http://localhost:3000/admin.html</a></li>
+            </ul>
+        </div>
+
+        <div class="error">
+            <h4>✗ Incorrect (file:// access):</h4>
+            <ul>
+                <li>Opening files directly from file explorer</li>
+                <li>Double-clicking .html files</li>
+                <li>Using file:// URLs</li>
+            </ul>
+        </div>
+
+        <h2>🐛 Common Issues & Solutions</h2>
+
+        <h3>Issue: "Failed to fetch"</h3>
+        <div class="step">
+            <p><strong>Cause:</strong> Server not running or wrong URL</p>
+            <p><strong>Solution:</strong></p>
+            <ol>
+                <li>Ensure server is running (see Step 2)</li>
+                <li>Access admin panel via <code>http://localhost:3000/admin.html</code></li>
+                <li>Don't open admin.html directly from file explorer</li>
+            </ol>
+        </div>
+
+        <h3>Issue: "Invalid admin key"</h3>
+        <div class="step">
+            <p><strong>Solution:</strong> Use the correct admin key: <code>IEEE2025ADMIN</code></p>
+        </div>
+
+        <h3>Issue: "Port 3000 already in use"</h3>
+        <div class="step">
+            <p><strong>Solution:</strong> Kill existing Node.js processes:</p>
+            <ol>
+                <li>Open Command Prompt as Administrator</li>
+                <li>Run: <code>taskkill /f /im node.exe</code></li>
+                <li>Restart the server</li>
+            </ol>
+        </div>
+
+        <h2>🆘 Emergency Database Reset</h2>
+        <div class="warning">
+            <p><strong>If admin panel doesn't work, you can manually reset the database:</strong></p>
+            <ol>
+                <li>Stop the server (Ctrl+C in command prompt)</li>
+                <li>Delete file: <code>c:\Users\fkr77\Downloads\ieee-game-tournament\tournament_scores.db</code></li>
+                <li>Restart the server</li>
+                <li>A new empty database will be created automatically</li>
+            </ol>
+        </div>
+
+        <h2>📞 Quick Actions</h2>
+        <div class="step">
+            <button class="btn" onclick="openGameUrl()">Open Game</button>
+            <button class="btn" onclick="openLeaderboard()">Open Leaderboard</button>
+            <button class="btn" onclick="openAdminPanel()">Open Admin Panel</button>
+        </div>
+    </div>
+
+    <script>
+        function checkServerStatus() {
+            const statusDiv = document.getElementById('server-status');
+            statusDiv.textContent = 'Checking server...';
+            statusDiv.className = 'status status-unknown';
+
+            fetch('http://localhost:3000/api/health')
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(`Server returned status: ${response.status}`);
+                })
+                .then(data => {
+                    statusDiv.textContent = `✓ Server is running! Message: ${data.message}`;
+                    statusDiv.className = 'status status-ok';
+                })
+                .catch(error => {
+                    statusDiv.textContent = `✗ Server not accessible: ${error.message}`;
+                    statusDiv.className = 'status status-error';
+                });
+        }
+
+        function openGameUrl() {
+            window.open('http://localhost:3000/index.html', '_blank');
+        }
+
+        function openLeaderboard() {
+            window.open('http://localhost:3000/leaderboard.html', '_blank');
+        }
+
+        function openAdminPanel() {
+            window.open('http://localhost:3000/admin.html', '_blank');
+        }
+
+        // Auto-check server status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(checkServerStatus, 1000);
+        });
+    </script>
+</body>
+</html>
