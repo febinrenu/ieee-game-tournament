@@ -95,7 +95,7 @@
             margin: 2rem auto;
             max-width: 1200px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 2rem;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
@@ -701,34 +701,7 @@
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
         }
 
-        .accuracy-bar {
-            width: 70px;
-            height: 10px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 6px;
-            overflow: hidden;
-            margin: 0 auto;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .accuracy-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent-color), var(--success-color));
-            border-radius: 6px;
-            transition: width 0.3s ease;
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
-        }
-
-        .time-remaining {
-            font-size: 0.95rem;
-            color: var(--text-dark);
-            font-weight: 600;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.05);
-            padding: 0.4rem 0.8rem;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-        }
+        
 
         .loading {
             text-align: center;
@@ -839,7 +812,7 @@
             }
 
             .stats-bar {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
                 gap: 1rem;
                 padding: 1rem;
                 margin: 1rem;
@@ -1010,10 +983,6 @@
             <div class="stat-value" id="average-score">-</div>
             <div class="stat-label">Average Score</div>
         </div>
-        <div class="stat-item">
-            <div class="stat-value" id="average-accuracy">-</div>
-            <div class="stat-label">Average Accuracy</div>
-        </div>
     </div>
 
     <div class="leaderboard-container">
@@ -1060,7 +1029,7 @@
                 <span>Student</span>
                 <span>Score</span>
                 <span>Levels</span>
-                <span>Accuracy</span>
+                
                 <span>Time Left</span>
             </div>
             <div id="leaderboard-body"></div>
@@ -1283,7 +1252,7 @@
             document.getElementById('total-participants').textContent = stats.total_participants || 0;
             document.getElementById('highest-score').textContent = stats.highest_score || 0;
             document.getElementById('average-score').textContent = Math.round(stats.average_score) || 0;
-            document.getElementById('average-accuracy').textContent = Math.round(stats.average_accuracy) + '%' || '0%';
+            
         }
 
         function displayLeaderboard(leaderboard) {
@@ -1352,9 +1321,7 @@
                     </div>
                     <div class="score-display">${student.final_score}</div>
                     <div class="levels-badge">${student.levels_completed}/5</div>
-                    <div class="accuracy-bar">
-                        <div class="accuracy-fill" style="width: ${student.accuracy_rate}%"></div>
-                    </div>
+                    
                     <div class="time-remaining">${formatTime(student.time_remaining)}</div>
                 `;
                 

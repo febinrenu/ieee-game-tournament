@@ -30,8 +30,7 @@ const gameConfig = {
             id: 4,
             name: "AI Training Challenge",
             theme: "artificial intelligence",
-            description: "Train AI to make correct decisions",
-            targetAccuracy: 80
+            description: "Train AI to make correct decisions"
         },
         {
             id: 5,
@@ -72,7 +71,7 @@ let gameState = {
         pathfindingAlgorithmLength: 0,
         firewallThreatsBlocked: 0,
         firewallSafeAllowed: 0,
-        aiTrainingAccuracy: 0,
+        
         codingChallengeSolved: 'none',
         deviceInfo: getDeviceInfo()
     },
@@ -242,14 +241,17 @@ function startGame() {
     const studentName = document.getElementById('student-name').value.trim();
     const registerNumber = document.getElementById('register-number').value.trim();
     const errorDiv = document.getElementById('registration-error');
+    const password = document.getElementById('password')?.value.trim() || '';
     
-    if (!studentName || !registerNumber) {
+    if (!studentName || !registerNumber || !password) {
         errorDiv.classList.remove('hidden');
-        errorDiv.textContent = 'Please enter both your name and registration number';
+        errorDiv.textContent = 'Please enter your name, registration number, and password';
         if (!studentName) {
             document.getElementById('student-name').focus();
-        } else {
+        } else if (!registerNumber) {
             document.getElementById('register-number').focus();
+        } else {
+            document.getElementById('password').focus();
         }
         return;
     }
@@ -277,7 +279,11 @@ function startGame() {
 async function registerUserInDatabase(studentName, registerNumber) {
     try {
         // First, check if user has existing progress
-        const progressResponse = await fetch(`${gameConfig.serverUrl}/api/get-progress/${registerNumber}`);
+        const progressResponse = await fetch(`${gameConfig.serverUrl}/api/get-progress-auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ registrationNumber: registerNumber, password: document.getElementById('password')?.value || '' })
+        });
         
         if (progressResponse.ok) {
             const progressData = await progressResponse.json();
@@ -337,6 +343,7 @@ async function registerUserInDatabase(studentName, registerNumber) {
             body: JSON.stringify({
                 registrationNumber: registerNumber,
                 studentName: studentName,
+                password: document.getElementById('password')?.value || '',
                 sessionId: gameState.sessionId
             })
         });
@@ -363,7 +370,11 @@ async function registerUserInDatabase(studentName, registerNumber) {
 // Resume game from saved progress
 async function resumeGame(registerNumber, studentName) {
     try {
-        const progressResponse = await fetch(`${gameConfig.serverUrl}/api/get-progress/${registerNumber}`);
+        const progressResponse = await fetch(`${gameConfig.serverUrl}/api/get-progress-auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ registrationNumber: registerNumber, password: document.getElementById('password')?.value || '' })
+        });
         const progressData = await progressResponse.json();
         
         if (progressData.success && progressData.user) {
@@ -417,7 +428,8 @@ async function startActualGame(studentName, registerNumber) {
             },
             body: JSON.stringify({
                 registrationNumber: registerNumber,
-                gameStartTime: gameStartTime
+                gameStartTime: gameStartTime,
+                password: document.getElementById('password')?.value || ''
             })
         });
 
@@ -457,7 +469,7 @@ async function startActualGame(studentName, registerNumber) {
                 pathfindingAlgorithmLength: 0,
                 firewallThreatsBlocked: 0,
                 firewallSafeAllowed: 0,
-                aiTrainingAccuracy: 0,
+                
                 codingChallengeSolved: 'none',
                 deviceInfo: getDeviceInfo()
             };
@@ -2154,19 +2166,11 @@ function createSuccessParticles(element) {
 }
 
 function updateAIProgress() {
-    document.getElementById('ai-accuracy').textContent = Math.round(gameState.aiAccuracy);
-    document.getElementById('ai-progress-fill').style.width = gameState.aiAccuracy + '%';
-    
-    // Add pulsing effect to progress bar when accuracy changes
-    const progressFill = document.getElementById('ai-progress-fill');
-    progressFill.style.animation = 'none';
-    setTimeout(() => {
-        progressFill.style.animation = 'progressPulse 0.6s ease-out';
-    }, 10);
+    // Accuracy UI removed
 }
 
 function checkAITrainingSuccess() {
-    // Calculate score based on accuracy (no retry allowed)
+    // Calculate score; accuracy UI removed
     let scoreAwarded = 0;
     
     if (gameState.aiAccuracy >= 90) {
@@ -2196,16 +2200,16 @@ function checkAITrainingSuccess() {
         else if (gameState.aiAccuracy >= 60) performanceMessage = "✅ Fair AI Training! Acceptable performance!";
         else performanceMessage = "📊 AI Training completed. Moving forward!";
         
-        showNotification('AI Training Complete!', `${performanceMessage}\nAccuracy: ${Math.round(gameState.aiAccuracy)}% | Score: +${scoreAwarded} points`, 'success');
+    showNotification('AI Training Complete!', `${performanceMessage}\nScore: +${scoreAwarded} points`, 'success');
         setTimeout(() => {
-            gameState.analytics.aiTrainingAccuracy = gameState.aiAccuracy; // Track for analytics
+            
             completeLevel(gameState.aiAccuracy, 1);
         }, 1500);
     } else {
         playErrorSound();
-        showNotification('AI Training Complete', `⚠️ AI Training completed with low accuracy!\nAccuracy: ${Math.round(gameState.aiAccuracy)}% | Score: +${scoreAwarded} points\nMoving to next level.`, 'warning');
+    showNotification('AI Training Complete', `⚠️ AI Training completed with low score.\nScore: +${scoreAwarded} points\nMoving to next level.`, 'warning');
         setTimeout(() => {
-            gameState.analytics.aiTrainingAccuracy = gameState.aiAccuracy; // Track for analytics
+            
             completeLevel(gameState.aiAccuracy, 1);
         }, 1500);
     }
@@ -2628,10 +2632,7 @@ function endGame() {
 
 // Score Submission Functions
 async function submitScoreToServer() {
-    // Calculate accuracy rate
-    const totalAttempts = gameState.levelPerformance.reduce((sum, level) => sum + (level.attempts || 1), 0);
-    const correctAttempts = gameState.levelPerformance.filter(level => level.completed).length;
-    const accuracyRate = totalAttempts > 0 ? (correctAttempts / totalAttempts) * 100 : 0;
+    // No overall accuracy stored; leaderboard uses score and completion only
 
     // Calculate total time taken
     const gameEndTime = Date.now();
@@ -2640,9 +2641,8 @@ async function submitScoreToServer() {
     const scoreData = {
         registrationNumber: gameState.registrationNumber,
         studentName: gameState.studentName,
-        finalScore: gameState.score,
-        levelsCompleted: gameState.levelsCompleted,
-        accuracyRate: Math.round(accuracyRate * 100) / 100, // Round to 2 decimal places
+    finalScore: gameState.score,
+    levelsCompleted: gameState.levelsCompleted,
         timeRemaining: gameState.timeRemaining,
         levelBreakdown: gameState.levelPerformance,
         sessionId: gameState.sessionId,
@@ -2698,12 +2698,6 @@ function showResults() {
     const finalScore = gameState.score;
     const timeUsed = gameConfig.totalTimeLimit - gameState.timeRemaining;
     
-    // Calculate overall accuracy based on actual performance in each level
-    let totalPerformance = 0;
-    if (gameState.levelPerformance.length > 0) {
-        totalPerformance = gameState.levelPerformance.reduce((sum, level) => sum + level.performance, 0);
-        totalPerformance = Math.round(totalPerformance / gameState.levelPerformance.length);
-    }
     
     // Display registration number
     document.getElementById('final-registration').textContent = gameState.registrationNumber;
@@ -2713,7 +2707,7 @@ function showResults() {
     
     document.getElementById('levels-completed').textContent = gameState.levelsCompleted;
     document.getElementById('time-remaining').textContent = formatTime(gameState.timeRemaining);
-    document.getElementById('accuracy-rate').textContent = totalPerformance + '%';
+    // Accuracy removed from results
     
     // Show level breakdown
     showLevelBreakdown();
@@ -2800,7 +2794,7 @@ function showLevelBreakdown() {
             <div class="level-name">
                 ${statusIcon} Level ${levelData.level}: ${levelConfig.name}
                 <small style="display: block; color: var(--color-text-secondary); font-size: var(--font-size-xs);">
-                    ${statusText} • ${levelData.performance}% accuracy
+                    ${statusText}
                 </small>
             </div>
             <span class="level-score">${levelData.score} pts</span>

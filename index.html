@@ -35,7 +35,11 @@
                         <label for="register-number" class="form-label">Student Registration Number</label>
                         <input type="text" id="register-number" class="form-control" placeholder="Enter your Registration Number" maxlength="11" required>
                     </div>
-                    <div id="registration-error" class="error-message hidden">Please enter both your name and registration number</div>
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" id="password" class="form-control" placeholder="Enter a password" required>
+                    </div>
+                    <div id="registration-error" class="error-message hidden">Please enter your name, registration number, and password</div>
                 </div>
                 
                 <button id="start-btn" class="btn btn--primary btn--lg">Start Tournament</button>
@@ -134,7 +138,7 @@
                     <div class="level-description">
                         <p>Train the AI by selecting correct responses to scenarios</p>
                         <div class="ai-progress">
-                            <div>AI Accuracy: <span id="ai-accuracy">0</span>%</div>
+                            
                             <div class="progress-bar small">
                                 <div id="ai-progress-fill" class="progress-fill"></div>
                             </div>
@@ -205,8 +209,7 @@
                             <div class="stat-label">Time Remaining</div>
                         </div>
                         <div class="stat">
-                            <div class="stat-value" id="accuracy-rate">0%</div>
-                            <div class="stat-label">Accuracy</div>
+                            
                         </div>
                     </div>
                 </div>
