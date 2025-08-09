@@ -1154,10 +1154,13 @@ body {
 
 .pathfinding-grid {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  /* Grid template columns will be set dynamically by JavaScript */
+  grid-template-columns: repeat(8, 1fr); /* Default fallback */
   gap: var(--space-6);
-  max-width: 480px;
+  max-width: min(90vw, 480px); /* Responsive max width */
   margin: 0 auto;
+  width: 100%;
+  aspect-ratio: 1; /* Keep grid square */
 }
 
 .path-cell {

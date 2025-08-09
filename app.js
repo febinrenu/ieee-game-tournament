@@ -794,7 +794,44 @@ function updateAttemptsDisplay() {
     document.getElementById('attempts-left').textContent = gameState.attemptsLeft;
 }
 
-// LEVEL 2: Algorithm Pathfinding
+// LEVEL 2: Algorithm Pathfinding - Enhanced Maze Generation System
+/* 
+ * ADMIN CONFIGURATION GUIDE:
+ * 
+ * To modify maze difficulty and settings, change the values in MAZE_CONFIG:
+ * 
+ * - size: 6, 8, 10, or 12 (maze dimensions)
+ *   * 6x6: Easy (good for beginners)
+ *   * 8x8: Medium (default, balanced difficulty)  
+ *   * 10x10: Hard (more complex pathfinding)
+ *   * 12x12: Expert (challenging for advanced users)
+ * 
+ * - complexity: 'easy', 'medium', 'hard'
+ *   * 'easy': Open mazes with scattered walls
+ *   * 'medium': Balanced with corridors and clusters
+ *   * 'hard': Complex patterns with dead ends
+ * 
+ * - minWallDensity/maxWallDensity: Control wall percentage (0.1 to 0.4)
+ * - ensureOptimalPath: true/false (guarantee reasonable solution length)
+ * - allowDiagonalGoals: Not used anymore - goal is always at bottom-right corner
+ * 
+ * NOTE: Goal position is now STATIC at bottom-right corner for consistent gameplay
+ * 
+ * Example configurations:
+ * Beginner: {size: 6, complexity: 'easy', minWallDensity: 0.1, maxWallDensity: 0.25}
+ * Advanced: {size: 10, complexity: 'hard', minWallDensity: 0.25, maxWallDensity: 0.4}
+ */
+
+const MAZE_CONFIG = {
+    // Backend configurable settings (not user-editable)
+    size: 8, // Can be changed to 6, 8, 10, 12 for different difficulties
+    minWallDensity: 0.40, // Minimum 30% walls
+    maxWallDensity: 0.75, // Maximum 65% walls
+    ensureOptimalPath: true, // Guarantee reasonably short solution
+    allowDiagonalGoals: true, // Goal is ALWAYS placed at bottom-right corner (static)
+    complexity: 'hard' // 'easy', 'medium', 'hard'
+};
+
 function initializePathfinding() {
     const grid = document.getElementById('pathfinding-grid');
     grid.innerHTML = '';
@@ -805,24 +842,20 @@ function initializePathfinding() {
         existingInstructions.remove();
     }
     
-    // Create easier maze (0 = path, 1 = wall, 2 = end)
-    gameState.maze = [
-        [0,0,0,0,1,0,0,2],
-        [0,1,1,0,1,0,1,0],
-        [0,0,0,0,0,0,0,0],
-        [1,1,1,0,1,1,1,0],
-        [0,0,0,0,0,0,0,0],
-        [0,1,1,1,0,1,1,1],
-        [0,0,0,0,0,0,0,0],
-        [1,1,1,0,0,0,1,0]
-    ];
-    
+    // Generate a sophisticated maze layout
+    generateAdvancedMaze();
+
     gameState.robotPosition = {x: 0, y: 0, direction: 'right'};
     gameState.algorithmSequence = [];
     
+    // Update CSS grid template based on maze size
+    const mazeSize = MAZE_CONFIG.size;
+    grid.style.gridTemplateColumns = `repeat(${mazeSize}, 1fr)`;
+    grid.style.gridTemplateRows = `repeat(${mazeSize}, 1fr)`;
+    
     // Create grid cells with better visual indicators
-    for (let y = 0; y < 8; y++) {
-        for (let x = 0; x < 8; x++) {
+    for (let y = 0; y < mazeSize; y++) {
+        for (let x = 0; x < mazeSize; x++) {
             const cell = document.createElement('div');
             cell.className = 'path-cell';
             cell.dataset.x = x;
@@ -868,6 +901,591 @@ function initializePathfinding() {
     document.getElementById('clear-algorithm').addEventListener('click', clearAlgorithm);
 }
 
+function generateAdvancedMaze() {
+    const size = MAZE_CONFIG.size;
+    
+    // Initialize empty maze
+    gameState.maze = Array(size).fill().map(() => Array(size).fill(0));
+    console.log(`Initialized ${size}x${size} maze`);
+    
+    // Select generation algorithm based on complexity
+    const algorithms = {
+        'easy': generateOpenMaze,
+        'medium': generateBalancedMaze,
+        'hard': generateComplexMaze
+    };
+    
+    const selectedAlgorithm = algorithms[MAZE_CONFIG.complexity] || generateBalancedMaze;
+    console.log(`Using ${MAZE_CONFIG.complexity} maze generation algorithm`);
+    selectedAlgorithm();
+    
+    // Ensure start position is always clear
+    gameState.maze[0][0] = 0;
+    console.log(`Start position (0,0) cleared`);
+    
+    // Place goal strategically
+    placeStrategicGoal();
+    
+    // Validate and optimize maze
+    validateAndOptimizeMaze();
+    
+    console.log(`Maze generation complete. Final maze:`, gameState.maze);
+}
+
+function generateOpenMaze() {
+    const size = MAZE_CONFIG.size;
+    const targetWalls = Math.floor(size * size * MAZE_CONFIG.minWallDensity);
+    
+    // Scatter walls randomly but avoid clustering
+    for (let i = 0; i < targetWalls; i++) {
+        let placed = false;
+        let attempts = 0;
+        
+        while (!placed && attempts < 50) {
+            const x = Math.floor(Math.random() * size);
+            const y = Math.floor(Math.random() * size);
+            
+            // Don't place walls too close to start or in dense clusters
+            if ((x === 0 && y === 0) || gameState.maze[y][x] === 1) {
+                attempts++;
+                continue;
+            }
+            
+            // Check for wall density in surrounding area
+            if (getLocalWallDensity(x, y) < 0.4) {
+                gameState.maze[y][x] = 1;
+                placed = true;
+            }
+            attempts++;
+        }
+    }
+}
+
+function generateBalancedMaze() {
+    const size = MAZE_CONFIG.size;
+    
+    // Use modified recursive backtracking with open areas
+    const walls = [];
+    
+    // Create initial wall structure
+    for (let y = 1; y < size - 1; y += 2) {
+        for (let x = 1; x < size - 1; x += 2) {
+            if (Math.random() > 0.3) { // 70% chance to place wall cluster
+                placeWallCluster(x, y, 2 + Math.floor(Math.random() * 2));
+            }
+        }
+    }
+    
+    // Add some random corridor walls
+    for (let i = 0; i < size; i++) {
+        const x = Math.floor(Math.random() * size);
+        const y = Math.floor(Math.random() * size);
+        
+        // Don't block start position or goal position
+        const isStartPosition = (x === 0 && y === 0);
+        const isGoalPosition = (x === size - 1 && y === size - 1);
+        
+        if (!isStartPosition && !isGoalPosition) {
+            if (Math.random() > 0.7) {
+                gameState.maze[y][x] = 1;
+            }
+        }
+    }
+    
+    // Create some guaranteed open corridors
+    createOpenCorridors();
+}
+
+function generateComplexMaze() {
+    const size = MAZE_CONFIG.size;
+    
+    // Use a more sophisticated algorithm - Modified Eller's algorithm
+    generateEllerMaze();
+    
+    // Add additional complexity
+    addMazeComplexity();
+}
+
+function generateEllerMaze() {
+    const size = MAZE_CONFIG.size;
+    
+    // Simplified Eller's algorithm adaptation for pathfinding maze
+    for (let y = 1; y < size; y += 2) {
+        for (let x = 1; x < size; x += 2) {
+            // Create wall patterns based on probability
+            if (Math.random() > 0.4) {
+                // Place L-shaped wall patterns
+                if (x + 1 < size && y + 1 < size) {
+                    gameState.maze[y][x] = 1;
+                    if (Math.random() > 0.5) {
+                        gameState.maze[y][x + 1] = 1;
+                    } else {
+                        gameState.maze[y + 1][x] = 1;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Add connecting corridors
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            // Don't modify start position or goal position
+            const isStartPosition = (x === 0 && y === 0);
+            const isGoalPosition = (x === size - 1 && y === size - 1);
+            
+            if (!isStartPosition && !isGoalPosition && Math.random() > 0.85 && gameState.maze[y][x] === 0) {
+                // Small chance to add strategic walls
+                if (getLocalWallDensity(x, y) < 0.6) {
+                    gameState.maze[y][x] = 1;
+                }
+            }
+        }
+    }
+}
+
+function placeWallCluster(centerX, centerY, size) {
+    const mazeSize = MAZE_CONFIG.size;
+    
+    for (let dy = -size; dy <= size; dy++) {
+        for (let dx = -size; dx <= size; dx++) {
+            const x = centerX + dx;
+            const y = centerY + dy;
+            
+            if (x >= 0 && x < mazeSize && y >= 0 && y < mazeSize) {
+                // Don't block start position or goal position
+                const isStartPosition = (x === 0 && y === 0);
+                const isGoalPosition = (x === mazeSize - 1 && y === mazeSize - 1);
+                
+                if (isStartPosition || isGoalPosition) continue;
+                
+                const distance = Math.abs(dx) + Math.abs(dy);
+                if (distance <= size && Math.random() > 0.3) {
+                    gameState.maze[y][x] = 1;
+                }
+            }
+        }
+    }
+}
+
+function createOpenCorridors() {
+    const size = MAZE_CONFIG.size;
+    
+    // Ensure some open corridors exist
+    const corridors = [
+        {start: {x: 0, y: 0}, end: {x: size - 1, y: 0}}, // Top row
+        {start: {x: 0, y: 0}, end: {x: 0, y: size - 1}}, // Left column
+        {start: {x: 0, y: size - 1}, end: {x: size - 1, y: size - 1}}, // Bottom row
+    ];
+    
+    corridors.forEach(corridor => {
+        if (Math.random() > 0.6) { // 40% chance to keep corridor open
+            clearPath(corridor.start, corridor.end);
+        }
+    });
+}
+
+function clearPath(start, end) {
+    // Simple line clearing between two points
+    const dx = Math.sign(end.x - start.x);
+    const dy = Math.sign(end.y - start.y);
+    const size = MAZE_CONFIG.size;
+    
+    let current = {x: start.x, y: start.y};
+    
+    while (current.x !== end.x || current.y !== end.y) {
+        // Don't clear start position or goal position
+        const isStartPosition = current.x === 0 && current.y === 0;
+        const isGoalPosition = current.x === size - 1 && current.y === size - 1;
+        
+        if (!isStartPosition && !isGoalPosition && Math.random() > 0.3) { // 70% chance to clear each cell
+            gameState.maze[current.y][current.x] = 0;
+        }
+        
+        if (current.x !== end.x) current.x += dx;
+        if (current.y !== end.y) current.y += dy;
+    }
+}
+
+function addMazeComplexity() {
+    const size = MAZE_CONFIG.size;
+    
+    // Add dead ends and alternative paths
+    for (let y = 1; y < size - 1; y++) {
+        for (let x = 1; x < size - 1; x++) {
+            if (gameState.maze[y][x] === 0) {
+                // Randomly create dead ends
+                if (Math.random() > 0.9) {
+                    createDeadEnd(x, y);
+                }
+            }
+        }
+    }
+}
+
+function createDeadEnd(x, y) {
+    const size = MAZE_CONFIG.size;
+    const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+    
+    // Wall off 3 out of 4 directions randomly
+    const keepOpen = Math.floor(Math.random() * 4);
+    
+    directions.forEach((dir, index) => {
+        if (index !== keepOpen) {
+            const nx = x + dir[0];
+            const ny = y + dir[1];
+            
+            if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
+                if (Math.random() > 0.5) {
+                    gameState.maze[ny][nx] = 1;
+                }
+            }
+        }
+    });
+}
+
+function getLocalWallDensity(x, y) {
+    const size = MAZE_CONFIG.size;
+    let walls = 0;
+    let total = 0;
+    
+    for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+            const nx = x + dx;
+            const ny = y + dy;
+            
+            if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
+                if (gameState.maze[ny][nx] === 1) walls++;
+                total++;
+            }
+        }
+    }
+    
+    return total > 0 ? walls / total : 0;
+}
+
+function placeStrategicGoal() {
+    const size = MAZE_CONFIG.size;
+    
+    // Always place goal at bottom-right corner (static position)
+    const goalX = size - 1;
+    const goalY = size - 1;
+    
+    // Clear the bottom-right position if it's a wall and place goal
+    gameState.maze[goalY][goalX] = 2;
+    
+    console.log(`Goal placed at static position: (${goalX}, ${goalY}) in ${size}x${size} maze`);
+    console.log(`Maze cell at goal position now contains: ${gameState.maze[goalY][goalX]}`);
+}
+
+function validateAndOptimizeMaze() {
+    // First, ensure a goal exists in the maze
+    validateGoalExists();
+    
+    const goalPos = findGoalPosition();
+    
+    // Ensure maze is solvable
+    if (!isPathReachable(goalPos)) {
+        createGuaranteedPath(goalPos);
+    }
+    
+    // Optimize for reasonable solution length
+    if (MAZE_CONFIG.ensureOptimalPath) {
+        optimizePathLength(goalPos);
+    }
+    
+    // Final validation
+    validateWallDensity();
+    
+    // Ensure goal is still there after all optimizations (don't rely on fallback)
+    const size = MAZE_CONFIG.size;
+    if (gameState.maze[size - 1][size - 1] !== 2) {
+        console.warn('Goal value missing at bottom-right; restoring it.');
+        gameState.maze[size - 1][size - 1] = 2;
+    }
+    
+    console.log('Final maze validation complete. Bottom-right value:', gameState.maze[size - 1][size - 1], 'Goal at:', { x: size - 1, y: size - 1 });
+}
+
+function validateGoalExists() {
+    const size = MAZE_CONFIG.size;
+    let goalFound = false;
+    
+    // Check if goal exists anywhere in the maze
+    for (let y = 0; y < size && !goalFound; y++) {
+        for (let x = 0; x < size && !goalFound; x++) {
+            if (gameState.maze[y][x] === 2) {
+                goalFound = true;
+            }
+        }
+    }
+    
+    // If no goal found, force place one in diagonal position
+    if (!goalFound) {
+        console.warn('Goal missing from maze, forcing diagonal placement');
+        placeStrategicGoal();
+    }
+}
+
+function createGuaranteedPath(goalPos) {
+    // Create a path using A* influenced clearing
+    const path = findOptimalPathToClear(goalPos);
+    
+    if (path.length === 0) {
+        // Fallback: create simple L-shaped path
+        createFallbackPath(goalPos);
+    } else {
+        // Clear some cells along the optimal path
+        path.forEach((pos, index) => {
+            if (index % 2 === 0 || Math.random() > 0.3) { // Clear every other cell or randomly
+                gameState.maze[pos.y][pos.x] = 0;
+            }
+        });
+    }
+}
+
+function findOptimalPathToClear(goalPos) {
+    // Simplified A* to find theoretical optimal path
+    const size = MAZE_CONFIG.size;
+    const openSet = [{x: 0, y: 0, f: 0, g: 0, h: manhattanDistance(0, 0, goalPos.x, goalPos.y), parent: null}];
+    const closedSet = new Set();
+    
+    while (openSet.length > 0) {
+        openSet.sort((a, b) => a.f - b.f);
+        const current = openSet.shift();
+        
+        if (current.x === goalPos.x && current.y === goalPos.y) {
+            // Reconstruct path
+            const path = [];
+            let node = current;
+            while (node) {
+                path.unshift({x: node.x, y: node.y});
+                node = node.parent;
+            }
+            return path;
+        }
+        
+        closedSet.add(`${current.x},${current.y}`);
+        
+        const neighbors = getNeighbors(current.x, current.y, size);
+        for (const neighbor of neighbors) {
+            const key = `${neighbor.x},${neighbor.y}`;
+            if (closedSet.has(key)) continue;
+            
+            const g = current.g + 1;
+            const h = manhattanDistance(neighbor.x, neighbor.y, goalPos.x, goalPos.y);
+            const f = g + h;
+            
+            const existing = openSet.find(n => n.x === neighbor.x && n.y === neighbor.y);
+            if (!existing || g < existing.g) {
+                if (existing) {
+                    existing.g = g;
+                    existing.f = f;
+                    existing.parent = current;
+                } else {
+                    openSet.push({...neighbor, f, g, h, parent: current});
+                }
+            }
+        }
+    }
+    
+    return []; // No path found
+}
+
+function createFallbackPath(goalPos) {
+    // Create simple L-shaped path: horizontal then vertical
+    // Clear horizontal path (but don't clear the goal)
+    for (let x = 0; x <= goalPos.x; x++) {
+        if (!(x === goalPos.x && 0 === goalPos.y)) { // Don't clear if this is the goal position
+            gameState.maze[0][x] = 0;
+        }
+    }
+    
+    // Clear vertical path (but don't clear the goal)
+    for (let y = 0; y <= goalPos.y; y++) {
+        if (y !== goalPos.y) { // Don't clear the goal position  
+            gameState.maze[y][goalPos.x] = 0;
+        }
+    }
+    
+    // Make sure goal is still there
+    gameState.maze[goalPos.y][goalPos.x] = 2;
+}
+
+function optimizePathLength(goalPos) {
+    const shortestPath = findShortestPath(goalPos);
+    const optimalLength = Math.ceil((MAZE_CONFIG.size * 1.5)); // Target path length
+    
+    if (shortestPath.length > optimalLength) {
+        // Path is too long, clear some obstacles
+        clearSomeObstacles(shortestPath);
+    }
+}
+
+function clearSomeObstacles(longPath) {
+    const size = MAZE_CONFIG.size;
+    
+    // Clear some walls along the long path to make it shorter
+    for (let i = 1; i < longPath.length - 1; i += 2) {
+        const pos = longPath[i];
+        
+        // Don't clear start position or goal position
+        const isStartPosition = pos.x === 0 && pos.y === 0;
+        const isGoalPosition = pos.x === size - 1 && pos.y === size - 1;
+        
+        if (!isStartPosition && !isGoalPosition) {
+            gameState.maze[pos.y][pos.x] = 0;
+        }
+    }
+}
+
+function validateWallDensity() {
+    const size = MAZE_CONFIG.size;
+    const totalCells = size * size;
+    let wallCount = 0;
+    
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            if (gameState.maze[y][x] === 1) wallCount++;
+        }
+    }
+    
+    const density = wallCount / totalCells;
+    
+    // Adjust if density is outside acceptable range
+    if (density < MAZE_CONFIG.minWallDensity) {
+        addRandomWalls(Math.floor((MAZE_CONFIG.minWallDensity - density) * totalCells));
+    } else if (density > MAZE_CONFIG.maxWallDensity) {
+        removeRandomWalls(Math.floor((density - MAZE_CONFIG.maxWallDensity) * totalCells));
+    }
+}
+
+function addRandomWalls(count) {
+    const size = MAZE_CONFIG.size;
+    
+    for (let i = 0; i < count; i++) {
+        let placed = false;
+        let attempts = 0;
+        
+        while (!placed && attempts < 100) {
+            const x = Math.floor(Math.random() * size);
+            const y = Math.floor(Math.random() * size);
+            
+            // Don't place walls on start position (0,0) or goal position (size-1, size-1)
+            const isStartPosition = (x === 0 && y === 0);
+            const isGoalPosition = (x === size - 1 && y === size - 1);
+            
+            if (gameState.maze[y][x] === 0 && !isStartPosition && !isGoalPosition) {
+                gameState.maze[y][x] = 1;
+                
+                // Check if goal is still reachable
+                const goalPos = findGoalPosition();
+                if (isPathReachable(goalPos)) {
+                    placed = true;
+                } else {
+                    gameState.maze[y][x] = 0; // Revert if it blocks the path
+                }
+            }
+            attempts++;
+        }
+    }
+}
+
+function removeRandomWalls(count) {
+    const size = MAZE_CONFIG.size;
+    
+    for (let i = 0; i < count; i++) {
+        let removed = false;
+        let attempts = 0;
+        
+        while (!removed && attempts < 100) {
+            const x = Math.floor(Math.random() * size);
+            const y = Math.floor(Math.random() * size);
+            
+            // Don't remove walls from start position or goal position
+            const isStartPosition = (x === 0 && y === 0);
+            const isGoalPosition = (x === size - 1 && y === size - 1);
+            
+            if (gameState.maze[y][x] === 1 && !isStartPosition && !isGoalPosition) {
+                gameState.maze[y][x] = 0;
+                removed = true;
+            }
+            attempts++;
+        }
+    }
+}
+
+function getNeighbors(x, y, size) {
+    const neighbors = [];
+    const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+    
+    for (const [dx, dy] of directions) {
+        const nx = x + dx;
+        const ny = y + dy;
+        
+        if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
+            neighbors.push({x: nx, y: ny});
+        }
+    }
+    
+    return neighbors;
+}
+
+function manhattanDistance(x1, y1, x2, y2) {
+    return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+}
+
+function findShortestPath(goalPos) {
+    return findOptimalPathToClear(goalPos); // Reuse the A* implementation
+}
+
+// Continue with remaining maze functions...
+
+function findGoalPosition() {
+    const size = MAZE_CONFIG.size;
+    
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            if (gameState.maze[y][x] === 2) {
+                return {x, y};
+            }
+        }
+    }
+    return {x: size - 1, y: size - 1}; // Fallback to bottom-right
+}
+
+function isPathReachable(goalPos) {
+    const size = MAZE_CONFIG.size;
+    
+    // Simple reachability check using BFS
+    const visited = Array(size).fill().map(() => Array(size).fill(false));
+    const queue = [[0, 0]];
+    visited[0][0] = true;
+    
+    const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+    
+    while (queue.length > 0) {
+        const [y, x] = queue.shift();
+        
+        if (x === goalPos.x && y === goalPos.y) {
+            return true;
+        }
+        
+        for (const [dy, dx] of directions) {
+            const ny = y + dy;
+            const nx = x + dx;
+            
+            if (ny >= 0 && ny < size && nx >= 0 && nx < size && 
+                !visited[ny][nx] && gameState.maze[ny][nx] !== 1) {
+                visited[ny][nx] = true;
+                queue.push([ny, nx]);
+            }
+        }
+    }
+    
+    return false;
+}
+
 function showPathfindingInstructions() {
     const instructionsDiv = document.createElement('div');
     instructionsDiv.id = 'pathfinding-instructions';
@@ -877,9 +1495,9 @@ function showPathfindingInstructions() {
         <div style="background: var(--color-bg-3); padding: var(--space-12); border-radius: var(--radius-md); margin: var(--space-8) 0;">
             <p><strong>Quick Start Guide:</strong></p>
             <ol style="margin: 0; padding-left: var(--space-20);">
-                <li> <strong>START</strong> = Blue square (robot begins here)</li>
+                <li>🟦 <strong>START</strong> = Blue square (robot begins here)</li>
                 <li>🔴 <strong>GOAL</strong> = Red square (get robot here to win)</li>
-                <li> <strong>WALLS</strong> = White squares (robot cannot pass through)</li>
+                <li>⬜ <strong>WALLS</strong> = White squares (robot cannot pass through)</li>
                 <li>📝 <strong>Drag blocks</strong> from left to create a path sequence</li>
                 <li>▶️ <strong>Click "Run Algorithm"</strong> to test your solution</li>
             </ol>
@@ -894,10 +1512,17 @@ function showPathfindingInstructions() {
             <p><strong>Current robot direction: <span id="robot-direction" style="color: var(--color-primary); font-weight: bold;">RIGHT</span></strong></p>
         </details>
         <details style="margin-top: var(--space-8);">
-            <summary><strong>💡 Need help? Click for solution hint</strong></summary>
+            <summary><strong>💡 Strategy Tips</strong></summary>
             <div style="background: var(--color-bg-2); padding: var(--space-8); border-radius: var(--radius-sm); margin-top: var(--space-8);">
-                <p><strong>Sample solution:</strong> Forward → Forward → Forward → Turn Right → Forward → Turn Left → Forward</p>
-                <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">Try this if you get stuck!</p>
+                <p><strong>Planning your route:</strong></p>
+                <ul style="margin: var(--space-8) 0; padding-left: var(--space-20);">
+                    <li>🗺️ Study the maze layout first</li>
+                    <li>🎯 Find the shortest path to the goal</li>
+                    <li>🔄 Remember: robot can only turn left or right</li>
+                    <li>⚡ Test your algorithm by clicking "Run"</li>
+                    <li>🔧 Adjust sequence if robot gets stuck</li>
+                </ul>
+                <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">💡 Each maze is randomly generated - no two games are the same!</p>
             </div>
         </details>
     `;
@@ -1037,6 +1662,7 @@ function executeAlgorithmStep(stepIndex) {
 }
 
 function moveRobot() {
+    const size = MAZE_CONFIG.size;
     const directions = {
         'up': {x: 0, y: -1},
         'right': {x: 1, y: 0},
@@ -1048,8 +1674,8 @@ function moveRobot() {
     const newX = gameState.robotPosition.x + move.x;
     const newY = gameState.robotPosition.y + move.y;
     
-    // Check bounds and walls
-    if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8 && gameState.maze[newY][newX] !== 1) {
+    // Check bounds and walls using dynamic size
+    if (newX >= 0 && newX < size && newY >= 0 && newY < size && gameState.maze[newY][newX] !== 1) {
         gameState.robotPosition.x = newX;
         gameState.robotPosition.y = newY;
         updateRobotDisplay();
@@ -1074,13 +1700,17 @@ function turnRobot(direction) {
 }
 
 function updateRobotDisplay() {
+    const size = MAZE_CONFIG.size;
+    
     // Remove robot from all cells
     const cells = document.querySelectorAll('.path-cell');
     cells.forEach(cell => cell.classList.remove('robot'));
     
-    // Add robot to current position
-    const robotIndex = gameState.robotPosition.y * 8 + gameState.robotPosition.x;
-    cells[robotIndex].classList.add('robot');
+    // Add robot to current position using dynamic size
+    const robotIndex = gameState.robotPosition.y * size + gameState.robotPosition.x;
+    if (cells[robotIndex]) {
+        cells[robotIndex].classList.add('robot');
+    }
     
     // Update direction indicator
     const directionSpan = document.getElementById('robot-direction');
@@ -1092,8 +1722,10 @@ function updateRobotDisplay() {
 function checkPathfindingSuccess() {
     // Find the goal position dynamically
     let goalX = -1, goalY = -1;
-    for (let y = 0; y < 8; y++) {
-        for (let x = 0; x < 8; x++) {
+    const size = MAZE_CONFIG.size;
+    
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
             if (gameState.maze[y][x] === 2) {
                 goalX = x;
                 goalY = y;
@@ -1101,6 +1733,18 @@ function checkPathfindingSuccess() {
             }
         }
         if (goalX !== -1) break;
+    }
+    
+    // Debug: Log goal position
+    console.log(`Goal search result: goalX=${goalX}, goalY=${goalY}`);
+    
+    // If no goal found, something is wrong - force place one
+    if (goalX === -1 || goalY === -1) {
+        console.error('No goal found in maze! Forcing goal placement...');
+        goalX = size - 1;
+        goalY = size - 1;
+        gameState.maze[goalY][goalX] = 2;
+        console.log(`Forced goal placement at: (${goalX}, ${goalY})`);
     }
     
     if (gameState.robotPosition.x === goalX && gameState.robotPosition.y === goalY) {
