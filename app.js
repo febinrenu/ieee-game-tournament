@@ -948,21 +948,21 @@ function initializeAITraining() {
             question: "A user enters sensitive data on an unsecured website. What should the AI recommend?",
             options: [
                 "Proceed with the transaction",
-                "Warn about security risks and suggest alternatives",
                 "Block the website entirely",
+                "Warn about security risks and suggest alternatives",
                 "Ignore the security concerns"
             ],
-            correct: 1
+            correct: 2
         },
         {
             question: "An email contains suspicious links and urgent language. How should the AI classify it?",
             options: [
-                "Forward to all contacts",
                 "Mark as spam/phishing",
+                "Forward to all contacts",
                 "Reply with personal information",
                 "Archive for later review"
             ],
-            correct: 1
+            correct: 0
         },
         {
             question: "A network shows unusual traffic patterns at night. What should the AI do?",
@@ -978,11 +978,11 @@ function initializeAITraining() {
             question: "A user's password has been compromised. What is the best AI response?",
             options: [
                 "Continue using the old password",
-                "Force immediate password reset and enable 2FA",
                 "Just send a warning email",
-                "Wait for the user to notice"
+                "Wait for the user to notice",
+                "Force immediate password reset and enable 2FA"
             ],
-            correct: 1
+            correct: 3
         },
         {
             question: "An AI detects potential data breach attempt. What should be the priority action?",
@@ -1007,12 +1007,12 @@ function initializeAITraining() {
         {
             question: "An autonomous system faces an ethical dilemma with multiple possible outcomes. What should guide the decision?",
             options: [
-                "Choose the fastest option",
                 "Prioritize human safety and wellbeing",
+                "Choose the fastest option",
                 "Select the most cost-effective solution",
                 "Let humans decide later"
             ],
-            correct: 1
+            correct: 0
         }
     ];
     
