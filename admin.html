@@ -319,7 +319,7 @@
         function testConnection() {
             showAlert('auth-status', 'Testing connection to server...', 'warning');
             
-            fetch('/api/health')
+            fetch('http://localhost:10106/api/health')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`Server responded with status: ${response.status}`);
@@ -332,7 +332,7 @@
                 .catch(error => {
                     console.error('Connection test failed:', error);
                     if (error.message.includes('Failed to fetch')) {
-                        showAlert('auth-status', '✗ Cannot connect to server. Please ensure the server is running on http://localhost:3000', 'error');
+                        showAlert('auth-status', '✗ Cannot connect to server. Please ensure the server is running on http://localhost:10106', 'error');
                     } else {
                         showAlert('auth-status', `✗ Connection failed: ${error.message}`, 'error');
                     }
@@ -350,7 +350,7 @@
             // First test basic connectivity
             showAlert('auth-status', 'Testing connection...', 'warning');
             
-            fetch('/api/health')
+            fetch('http://localhost:10106/api/health')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`Server responded with status: ${response.status}`);
@@ -361,7 +361,7 @@
                     // Server is responding, now test admin authentication
                     showAlert('auth-status', 'Server connected. Checking admin key...', 'warning');
                     
-                    return fetch('/api/admin/backup?key=' + encodeURIComponent(adminKey));
+                    return fetch('http://localhost:10106/api/admin/backup?key=' + encodeURIComponent(adminKey));
                 })
                 .then(response => {
                     if (response.status === 403) {
@@ -382,7 +382,7 @@
                 .catch(error => {
                     console.error('Authentication error:', error);
                     if (error.message.includes('Failed to fetch')) {
-                        showAlert('auth-status', 'Cannot connect to server. Please make sure the server is running on http://localhost:3000', 'error');
+                        showAlert('auth-status', 'Cannot connect to server. Please make sure the server is running on http://localhost:10106', 'error');
                     } else {
                         showAlert('auth-status', 'Authentication failed: ' + error.message, 'error');
                     }
@@ -392,7 +392,7 @@
         function loadStats() {
             if (!isAuthenticated) return;
 
-            fetch('/api/stats')
+            fetch('http://localhost:10106/api/stats')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -432,7 +432,7 @@
             if (!isAuthenticated) return;
 
             const link = document.createElement('a');
-            link.href = `/api/admin/backup?key=${encodeURIComponent(adminKey)}`;
+            link.href = `http://localhost:10106/api/admin/backup?key=${encodeURIComponent(adminKey)}`;
             link.download = `tournament_backup_${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(link);
             link.click();
@@ -455,7 +455,7 @@
                 return;
             }
 
-            fetch(`/api/admin/clear-student?key=${encodeURIComponent(adminKey)}&reg=${encodeURIComponent(regNumber)}`, {
+            fetch(`http://localhost:10106/api/admin/clear-student?key=${encodeURIComponent(adminKey)}&reg=${encodeURIComponent(regNumber)}`, {
                 method: 'DELETE'
             })
             .then(response => response.json())
@@ -479,7 +479,7 @@
             if (confirm('Quick Clear: Delete all tournament data?\n\nThis is faster than the full confirmation process.\n\nClick OK to proceed or Cancel to abort.')) {
                 showAlert('clear-status', 'Clearing all tournament data...', 'warning');
 
-                fetch(`/api/admin/clear-all?key=${encodeURIComponent(adminKey)}`, {
+                fetch(`http://localhost:10106/api/admin/clear-all?key=${encodeURIComponent(adminKey)}`, {
                     method: 'DELETE'
                 })
                 .then(response => response.json())
@@ -531,7 +531,7 @@
 
             showAlert('clear-status', 'Deleting all tournament data...', 'warning');
 
-            fetch(`/api/admin/clear-all?key=${encodeURIComponent(adminKey)}`, {
+            fetch(`http://localhost:10106/api/admin/clear-all?key=${encodeURIComponent(adminKey)}`, {
                 method: 'DELETE'
             })
             .then(response => response.json())

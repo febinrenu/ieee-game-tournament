@@ -528,7 +528,7 @@
 
             try {
                 // Load statistics
-                const statsResponse = await fetch('/api/stats');
+                const statsResponse = await fetch('http://localhost:10106/api/stats');
                 const statsData = await statsResponse.json();
                 
                 if (statsData.success) {
@@ -536,7 +536,7 @@
                 }
 
                 // Load leaderboard
-                const leaderboardResponse = await fetch('/api/leaderboard?limit=100');
+                const leaderboardResponse = await fetch('http://localhost:10106/api/leaderboard?limit=100');
                 const leaderboardData = await leaderboardResponse.json();
                 
                 if (leaderboardData.success) {
