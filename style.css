@@ -1209,8 +1209,35 @@ body {
   color: white;
   border-color: #0066CC;
   box-shadow: 0 0 15px rgba(0, 102, 204, 0.6);
+  position: relative;
 }
 
+/* Direction-based robot indicators */
+.path-cell.robot.direction-right::after {
+  content: "▶";
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+}
+
+.path-cell.robot.direction-left::after {
+  content: "◀";
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+}
+
+.path-cell.robot.direction-up::after {
+  content: "▲";
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+}
+
+.path-cell.robot.direction-down::after {
+  content: "▼";
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+}
+
+/* Fallback robot indicator */
 .path-cell.robot::after {
   content: "🤖";
   font-size: var(--font-size-lg);
@@ -1264,6 +1291,9 @@ body {
   border-radius: var(--radius-base);
   overflow: hidden;
   margin: var(--space-16) 0;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .firewall-line {
@@ -1283,7 +1313,7 @@ body {
   border-radius: 50%;
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-standard);
-  animation: packetMove 3s linear;
+  animation: packetMove 5s linear;
 }
 
 .packet.safe {
@@ -1776,7 +1806,7 @@ body {
 
 @keyframes packetMove {
   0% { left: -50px; }
-  100% { left: calc(100% + 50px); }
+  100% { left: 850px; }
 }
 
 @keyframes packetBlocked {
@@ -2041,6 +2071,13 @@ body {
   
   .firewall-area {
     height: 250px;
+    max-width: 350px;
+  }
+  
+  /* Adjust packet movement for smaller screens */
+  @keyframes packetMove {
+    0% { left: -50px; }
+    100% { left: 400px; }
   }
   
   .code-blocks {

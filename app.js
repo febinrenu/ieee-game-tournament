@@ -24,7 +24,7 @@ const gameConfig = {
             name: "Cybersecurity Firewall",
             theme: "security",
             description: "Block malicious packets while allowing safe ones",
-            successThresholds: { blockThreats: 85, allowSafe: 90 }
+            successThresholds: { blockThreats: 8, allowSafe: 10 }
         },
         {
             id: 4,
@@ -881,6 +881,12 @@ function initializePathfinding() {
     // Add robot to starting position
     updateRobotDisplay();
     
+    // Initialize the direction display
+    const directionDisplay = document.getElementById('robot-direction');
+    if (directionDisplay) {
+        directionDisplay.textContent = gameState.robotPosition.direction.toUpperCase();
+    }
+    
     // Clear sequence area
     document.getElementById('sequence-blocks').innerHTML = '';
     
@@ -1692,27 +1698,30 @@ function turnRobot(direction) {
         gameState.robotPosition.direction = directions[(currentIndex + 1) % 4];
     }
     
-    // Update direction display
-    const directionDisplay = document.getElementById('robot-direction');
-    if (directionDisplay) {
-        directionDisplay.textContent = gameState.robotPosition.direction.toUpperCase();
-    }
+    // Update the robot display to show new direction
+    updateRobotDisplay();
 }
 
 function updateRobotDisplay() {
     const size = MAZE_CONFIG.size;
     
-    // Remove robot from all cells
+    // Remove robot and direction classes from all cells
     const cells = document.querySelectorAll('.path-cell');
-    cells.forEach(cell => cell.classList.remove('robot'));
+    cells.forEach(cell => {
+        cell.classList.remove('robot', 'direction-right', 'direction-left', 'direction-up', 'direction-down');
+    });
     
     // Add robot to current position using dynamic size
     const robotIndex = gameState.robotPosition.y * size + gameState.robotPosition.x;
     if (cells[robotIndex]) {
         cells[robotIndex].classList.add('robot');
+        
+        // Add direction class based on robot's facing direction
+        const directionClass = `direction-${gameState.robotPosition.direction}`;
+        cells[robotIndex].classList.add(directionClass);
     }
     
-    // Update direction indicator
+    // Update direction indicator if element exists
     const directionSpan = document.getElementById('robot-direction');
     if (directionSpan) {
         directionSpan.textContent = gameState.robotPosition.direction.toUpperCase();
@@ -1814,8 +1823,9 @@ function showFirewallInstructions() {
             <li>🟢 <strong>Safe packets (green):</strong> Let them pass through - DO NOT click them</li>
             <li>🔴 <strong>Threat packets (red):</strong> Click to block them</li>
             <li>⏱️ Test runs for 30 seconds</li>
-            <li>🎯 <strong>Goal:</strong> Block 85%+ threats AND allow 90%+ safe packets</li>
-            <li>⚡ Packets move from left to right</li>
+            <li>🎯 <strong>Goal:</strong> Block ≥75% of threats AND allow ≥70% of safe packets</li>
+            <li>📊 <strong>Minimum activity:</strong> Block at least 5 threats and allow at least 8 safe packets</li>
+            <li>⚡ Packets move slowly from left to right - you have more time now!</li>
             <li>💡 NOTE: Click the threat when its on the firewall or after the firewall</li>
         </ul>
         <p><strong>Ready? Click "Start Firewall Test" to begin!</strong></p>
@@ -1828,7 +1838,7 @@ function showFirewallInstructions() {
 
 function startFirewallTest() {
     gameState.firewallActive = true;
-    gameState.packetInterval = setInterval(spawnPacket, 800);
+    gameState.packetInterval = setInterval(spawnPacket, 600); // Faster spawn rate
     
     // Run test for 30 seconds
     setTimeout(() => {
@@ -1845,7 +1855,19 @@ function spawnPacket() {
     const packet = document.createElement('div');
     packet.className = 'packet';
     
-    const isThreat = Math.random() > 0.6;
+    // Ensure better distribution: 50% threats, 50% safe packets
+    // But guarantee at least 15 threats spawn during the test
+    const totalSpawned = gameState.totalThreats + gameState.totalSafe;
+    const threatRatio = gameState.totalThreats / Math.max(1, totalSpawned);
+    
+    let isThreat;
+    if (totalSpawned < 30 && gameState.totalThreats < 15) {
+        // Early in the test, bias toward threats to ensure we get enough
+        isThreat = Math.random() > 0.4; // 60% chance of threat
+    } else {
+        // Normal distribution
+        isThreat = Math.random() > 0.5; // 50% chance of threat
+    }
     packet.classList.add(isThreat ? 'threat' : 'safe');
     
     if (isThreat) gameState.totalThreats++;
@@ -1856,12 +1878,15 @@ function spawnPacket() {
     
     packet.addEventListener('click', () => handlePacketClick(packet, isThreat));
     
+    // Mark packet as not clicked initially
+    packet.isClicked = false;
+    
     document.getElementById('firewall-area').appendChild(packet);
     updateFirewallStats();
     
     // Remove packet if it reaches the end
     setTimeout(() => {
-        if (packet.parentNode) {
+        if (packet.parentNode && !packet.isClicked) {
             if (!isThreat) {
                 gameState.safeAllowed++;
                 gameState.analytics.firewallSafeAllowed++; // Track for analytics
@@ -1869,11 +1894,12 @@ function spawnPacket() {
             packet.remove();
             updateFirewallStats();
         }
-    }, 3000);
+    }, 5000);
 }
 
 function handlePacketClick(packet, isThreat) {
     packet.style.pointerEvents = 'none';
+    packet.isClicked = true; // Mark as clicked to prevent timeout counting
     
     if (isThreat) {
         gameState.threatsBlocked++;
@@ -1881,10 +1907,11 @@ function handlePacketClick(packet, isThreat) {
         packet.classList.add('blocked');
         playBlockSound();
     } else {
-        // Blocked a safe packet (mistake)
+        // Blocked a safe packet (mistake) - this should NOT count toward safeAllowed
         packet.classList.add('blocked');
         trackError(); // Track the error
         playErrorSound();
+        // Note: We don't increment safeAllowed because blocking a safe packet is wrong
     }
     
     setTimeout(() => packet.remove(), 500);
@@ -1901,18 +1928,51 @@ function updateFirewallStats() {
 function checkFirewallSuccess() {
     gameState.firewallActive = false;
     
+    // Calculate success rates
     const threatBlockRate = gameState.totalThreats > 0 ? (gameState.threatsBlocked / gameState.totalThreats) * 100 : 0;
     const safeAllowRate = gameState.totalSafe > 0 ? (gameState.safeAllowed / gameState.totalSafe) * 100 : 0;
     
-    if (threatBlockRate >= 85 && safeAllowRate >= 90) {
+    // Minimum absolute thresholds (to ensure some activity)
+    const minThreatsBlocked = 5;
+    const minSafeAllowed = 8;
+    
+    // Percentage thresholds
+    const minThreatBlockRate = 75; // 75% of threats must be blocked
+    const minSafeAllowRate = 70;   // 70% of safe packets must be allowed
+    
+    // Debug logging
+    console.log('Firewall Success Check:');
+    console.log('- Total threats spawned:', gameState.totalThreats);
+    console.log('- Threats blocked:', gameState.threatsBlocked, `(${Math.round(threatBlockRate)}%)`);
+    console.log('- Total safe packets spawned:', gameState.totalSafe);
+    console.log('- Safe packets allowed through:', gameState.safeAllowed, `(${Math.round(safeAllowRate)}%)`);
+    console.log('- Safe packets wrongly blocked:', gameState.totalSafe - gameState.safeAllowed);
+    console.log('Requirements:');
+    console.log('  - Threat block rate >= 75%:', threatBlockRate >= minThreatBlockRate);
+    console.log('  - Safe allow rate >= 70%:', safeAllowRate >= minSafeAllowRate);
+    console.log('  - Min threats blocked >= 5:', gameState.threatsBlocked >= minThreatsBlocked);
+    console.log('  - Min safe allowed >= 8:', gameState.safeAllowed >= minSafeAllowed);
+    
+    // Success if: good percentages AND minimum activity thresholds met
+    const success = (threatBlockRate >= minThreatBlockRate && safeAllowRate >= minSafeAllowRate && 
+                    gameState.threatsBlocked >= minThreatsBlocked && gameState.safeAllowed >= minSafeAllowed);
+    
+    if (success) {
+        console.log('SUCCESS! Proceeding to complete level...');
         updateScore(400);
         createParticles();
         playSuccessSound();
+        
+        // Calculate performance based on rates
         const performance = Math.round((threatBlockRate + safeAllowRate) / 2);
+        
         setTimeout(() => completeLevel(performance, 1), 1500);
     } else {
+        console.log('FAILED! Showing retry message...');
         playErrorSound();
-        showNotification('Improve Performance', `Need better performance! Threats blocked: ${Math.round(threatBlockRate)}%, Safe allowed: ${Math.round(safeAllowRate)}%`, 'warning');
+        showNotification('Improve Performance', 
+            `Need: Block ≥75% threats (${Math.round(threatBlockRate)}%) AND allow ≥70% safe packets (${Math.round(safeAllowRate)}%)`, 
+            'warning');
         setTimeout(() => initializeFirewall(), 2000);
     }
 }
