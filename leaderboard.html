@@ -10,7 +10,9 @@
             --secondary-color: #7c3aed;
             --accent-color: #f59e0b;
             --success-color: #10b981;
-            --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --color-bg-1: rgba(30, 64, 175, 0.85); /* Dark blue */
+            --color-bg-8: rgba(4, 120, 145, 0.85); /* Dark cyan */
+            --background: linear-gradient(135deg, var(--color-bg-1), var(--color-bg-8));
             --card-bg: rgba(255, 255, 255, 0.95);
             --text-dark: #1f2937;
             --text-light: #6b7280;
@@ -133,63 +135,334 @@
         .podium {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 3rem;
+            gap: 1.5rem;
+            margin-bottom: 4rem;
             align-items: end;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .podium-place {
             background: var(--card-bg);
-            border-radius: 16px;
-            padding: 2rem 1rem;
+            border-radius: 20px;
+            padding: 2.5rem 1.5rem;
             text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
             position: relative;
             overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .podium-place::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        }
+
+        .podium-place:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
         }
 
         .podium-place.first {
             order: 2;
-            transform: scale(1.05);
+            transform: scale(1.08) translateY(-10px);
             z-index: 3;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), var(--card-bg));
+            border: 2px solid var(--gold);
+        }
+
+        .podium-place.first::before {
+            background: linear-gradient(90deg, var(--gold), #fff700, var(--gold));
+        }
+
+        .podium-place.first:hover {
+            transform: scale(1.08) translateY(-18px);
         }
 
         .podium-place.second {
             order: 1;
             z-index: 2;
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.1), var(--card-bg));
+            border: 2px solid var(--silver);
+        }
+
+        .podium-place.second::before {
+            background: linear-gradient(90deg, var(--silver), #e5e5e5, var(--silver));
         }
 
         .podium-place.third {
             order: 3;
             z-index: 1;
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.1), var(--card-bg));
+            border: 2px solid var(--bronze);
+        }
+
+        .podium-place.third::before {
+            background: linear-gradient(90deg, var(--bronze), #e6a76b, var(--bronze));
         }
 
         .podium-rank {
             position: absolute;
-            top: -10px;
+            top: -15px;
             left: 50%;
             transform: translateX(-50%);
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
             color: white;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            border: 3px solid white;
         }
 
-        .podium-place.first .podium-rank { background: var(--gold); }
-        .podium-place.second .podium-rank { background: var(--silver); }
-        .podium-place.third .podium-rank { background: var(--bronze); }
+        .podium-place.first .podium-rank { 
+            background: linear-gradient(135deg, var(--gold), #fff700);
+            animation: goldShimmer 2s ease-in-out infinite alternate;
+        }
+        .podium-place.second .podium-rank { 
+            background: linear-gradient(135deg, var(--silver), #e5e5e5);
+        }
+        .podium-place.third .podium-rank { 
+            background: linear-gradient(135deg, var(--bronze), #e6a76b);
+        }
+
+        @keyframes goldShimmer {
+            0% { box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4); }
+            100% { box-shadow: 0 6px 30px rgba(255, 215, 0, 0.7); }
+        }
 
         .podium-avatar {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            margin: 1rem auto;
+            margin: 1.5rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            border: 4px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+            overflow: hidden;
+        }
+
+        .podium-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .podium-place:hover .podium-avatar {
+            transform: scale(1.1);
+        }
+
+        .podium-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+            line-height: 1.2;
+        }
+
+        .podium-reg {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .podium-score {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .podium-place.first .podium-score {
+            background: linear-gradient(45deg, var(--gold), #fff700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .leaderboard-table {
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 16px 56px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.25rem 1rem;
+            font-weight: 600;
+            display: grid;
+            grid-template-columns: 70px 2fr 90px 90px 110px 130px;
+            gap: 1rem;
+            align-items: center;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+            position: relative;
+        }
+
+        .table-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        }
+
+        .table-row {
+            padding: 1.25rem 1rem;
+            display: grid;
+            grid-template-columns: 70px 2fr 90px 90px 110px 130px;
+            gap: 1rem;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .table-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: transparent;
+            transition: background 0.3s ease;
+        }
+
+        .table-row:hover {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(124, 58, 237, 0.05));
+            transform: translateX(4px);
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.1);
+        }
+
+        .table-row:hover::before {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        /* User highlighting styles */
+        .table-row.current-user {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 193, 7, 0.1));
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            margin: 4px 0;
+            transform: translateX(0);
+            box-shadow: 0 8px 32px rgba(255, 215, 0, 0.2);
+            animation: highlightPulse 2s ease-in-out infinite alternate;
+        }
+
+        .table-row.current-user::before {
+            background: linear-gradient(135deg, var(--gold), #fff700);
+            width: 6px;
+        }
+
+        @keyframes highlightPulse {
+            0% { box-shadow: 0 8px 32px rgba(255, 215, 0, 0.2); }
+            100% { box-shadow: 0 8px 40px rgba(255, 215, 0, 0.35); }
+        }
+
+        /* User position card */
+        .user-position-card {
+            background: linear-gradient(135deg, var(--card-bg), rgba(255, 255, 255, 0.98));
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 600px;
+            box-shadow: 0 16px 56px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--gold);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            display: none;
+        }
+
+        .user-position-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), #fff700, var(--gold));
+        }
+
+        .user-position-card.show {
+            display: block;
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-position-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .user-position-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .user-position-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto;
+            border: 4px solid var(--gold);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -198,99 +471,156 @@
             font-weight: 700;
         }
 
-        .podium-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
+        .user-position-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .user-position-info h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.3rem;
             color: var(--text-dark);
         }
 
-        .podium-reg {
-            font-size: 0.9rem;
+        .user-position-info p {
+            margin: 0;
             color: var(--text-light);
-            margin-bottom: 1rem;
+            font-size: 0.95rem;
         }
 
-        .podium-score {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-
-        .leaderboard-table {
-            background: var(--card-bg);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .table-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 1rem;
-            font-weight: 600;
-            display: grid;
-            grid-template-columns: 60px 2fr 1fr 80px 80px 100px 120px;
-            gap: 1rem;
-            align-items: center;
+        .user-position-rank {
             text-align: center;
         }
 
-        .table-row {
-            padding: 1rem;
-            display: grid;
-            grid-template-columns: 60px 2fr 1fr 80px 80px 100px 120px;
-            gap: 1rem;
-            align-items: center;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            transition: background-color 0.2s ease;
+        .user-rank-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--gold), #fff700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
         }
 
-        .table-row:hover {
-            background-color: rgba(37, 99, 235, 0.05);
+        .user-rank-text {
+            font-size: 1rem;
+            color: var(--text-light);
+            font-weight: 600;
         }
 
-        .table-row:last-child {
-            border-bottom: none;
+        /* Search functionality */
+        .search-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem 1rem 3.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            font-size: 1rem;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2), 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-light);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 1.2rem;
+            pointer-events: none;
         }
 
         .rank-badge {
-            width: 35px;
-            height: 35px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
             color: white;
-            font-size: 0.9rem;
+            font-size: 1rem;
             margin: 0 auto;
             text-align: center;
             line-height: 1;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: 2px solid white;
+            transition: all 0.3s ease;
+        }
+
+        .rank-badge:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .rank-badge.rank-1 {
+            background: linear-gradient(135deg, var(--gold), #fff700);
+            animation: goldPulse 3s ease-in-out infinite alternate;
+            border: 3px solid #fff700;
+            font-size: 1.1rem;
+        }
+
+        .rank-badge.rank-2 {
+            background: linear-gradient(135deg, var(--silver), #e5e5e5);
+            border: 3px solid var(--silver);
+            font-size: 1.1rem;
+        }
+
+        .rank-badge.rank-3 {
+            background: linear-gradient(135deg, var(--bronze), #e6a76b);
+            border: 3px solid var(--bronze);
+            font-size: 1.1rem;
         }
 
         .rank-badge.top-10 {
-            background: linear-gradient(135deg, var(--gold), var(--accent-color));
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: 2px solid var(--primary-color);
         }
 
         .rank-badge.top-50 {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(135deg, var(--success-color), #16a085);
+            border: 2px solid var(--success-color);
         }
 
         .rank-badge.other {
-            background: var(--text-light);
+            background: linear-gradient(135deg, var(--text-light), #9ca3af);
+        }
+
+        @keyframes goldPulse {
+            0% { box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3); }
+            100% { box-shadow: 0 4px 20px rgba(255, 215, 0, 0.6); }
         }
 
         .student-info {
             display: flex;
             align-items: center;
             gap: 1rem;
+            text-align: left;
         }
 
         .student-avatar {
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             display: flex;
@@ -298,59 +628,106 @@
             justify-content: center;
             color: white;
             font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .student-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .student-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
         }
 
         .student-details h4 {
             margin: 0;
-            font-size: 1rem;
+            font-size: 1.05rem;
+            font-weight: 600;
             color: var(--text-dark);
+            line-height: 1.3;
         }
 
         .student-details p {
-            margin: 0;
+            margin: 2px 0 0 0;
             font-size: 0.85rem;
             color: var(--text-light);
+            font-weight: 500;
+            opacity: 0.8;
         }
 
         .score-display {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             font-weight: 700;
             color: var(--primary-color);
             text-align: center;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.05));
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .score-display:hover {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(124, 58, 237, 0.08));
+            transform: scale(1.05);
         }
 
         .levels-badge {
-            background: var(--success-color);
+            background: linear-gradient(135deg, var(--success-color), #059669);
             color: white;
-            padding: 0.25rem 0.75rem;
+            padding: 0.5rem 1rem;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 600;
             text-align: center;
             margin: 0 auto;
             display: inline-block;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .levels-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
         }
 
         .accuracy-bar {
-            width: 60px;
-            height: 8px;
+            width: 70px;
+            height: 10px;
             background: rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
+            border-radius: 6px;
             overflow: hidden;
+            margin: 0 auto;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .accuracy-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--accent-color), var(--success-color));
-            border-radius: 4px;
+            border-radius: 6px;
             transition: width 0.3s ease;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
         }
 
         .time-remaining {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: var(--text-dark);
             font-weight: 600;
             text-align: center;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
         }
 
         .loading {
@@ -378,21 +755,66 @@
             position: fixed;
             bottom: 2rem;
             right: 2rem;
-            background: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             border: none;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 1.5rem;
+            width: 70px;
+            height: 70px;
+            font-size: 1.8rem;
             cursor: pointer;
-            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
-            transition: all 0.2s ease;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
         .refresh-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            transform: scale(1.1) rotate(180deg);
+            box-shadow: 0 12px 32px rgba(37, 99, 235, 0.5);
+        }
+
+        .refresh-btn:active {
+            transform: scale(1.05) rotate(180deg);
+        }
+
+        /* Loading Animation Enhancement */
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-left: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        /* Fade-in animation for table rows */
+        .table-row {
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .table-row:nth-child(1) { animation-delay: 0.1s; }
+        .table-row:nth-child(2) { animation-delay: 0.2s; }
+        .table-row:nth-child(3) { animation-delay: 0.3s; }
+        .table-row:nth-child(4) { animation-delay: 0.4s; }
+        .table-row:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .empty-state {
@@ -407,8 +829,10 @@
             opacity: 0.6;
         }
 
+        /* Responsive Design */
         @media (max-width: 768px) {
             .header-content {
+                padding: 0 1rem;
                 flex-direction: column;
                 gap: 1rem;
                 text-align: center;
@@ -416,37 +840,146 @@
 
             .stats-bar {
                 grid-template-columns: repeat(2, 1fr);
-                margin: 1rem;
+                gap: 1rem;
                 padding: 1rem;
+                margin: 1rem;
+            }
+
+            .leaderboard-container {
+                padding: 0 1rem 2rem;
+            }
+
+            .leaderboard-title {
+                font-size: 2rem;
+                margin-bottom: 1.5rem;
             }
 
             .podium {
                 grid-template-columns: 1fr;
                 gap: 1rem;
+                margin-bottom: 2rem;
             }
 
-            .podium-place {
-                order: initial !important;
-                transform: none !important;
+            .podium-place.first {
+                order: 1;
+                transform: none;
             }
 
-            .table-header,
-            .table-row {
-                grid-template-columns: 50px 2fr 60px;
+            .podium-place.second {
+                order: 2;
+            }
+
+            .podium-place.third {
+                order: 3;
+            }
+
+            .table-header {
+                grid-template-columns: 50px 1fr 70px 60px;
                 gap: 0.5rem;
+                padding: 1rem 0.5rem;
+                font-size: 0.75rem;
             }
 
-            .table-header span:nth-child(n+4),
-            .table-row > *:nth-child(n+4) {
+            .table-header span:nth-child(5),
+            .table-header span:nth-child(6) {
                 display: none;
             }
 
-            .leaderboard-container {
-                padding: 0 1rem 1rem;
+            .table-row {
+                grid-template-columns: 50px 1fr 70px 60px;
+                gap: 0.5rem;
+                padding: 1rem 0.5rem;
             }
 
-            .leaderboard-title {
+            .table-row > div:nth-child(5),
+            .table-row > div:nth-child(6) {
+                display: none;
+            }
+
+            .student-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .student-details h4 {
+                font-size: 0.95rem;
+            }
+
+            .student-details p {
+                font-size: 0.75rem;
+            }
+
+            .score-display {
+                font-size: 1.1rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .levels-badge {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .user-position-content {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .user-position-avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 1.5rem;
+            }
+
+            .search-container {
+                margin: 1rem;
+            }
+
+            .search-input {
+                padding: 0.8rem 1.2rem 0.8rem 3rem;
+                font-size: 0.9rem;
+            }
+
+            .refresh-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+                bottom: 1rem;
+                right: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+
+            .podium-place {
+                padding: 1.5rem 1rem;
+            }
+
+            .podium-avatar {
+                width: 80px;
+                height: 80px;
                 font-size: 2rem;
+            }
+
+            .podium-name {
+                font-size: 1.1rem;
+            }
+
+            .podium-score {
+                font-size: 1.5rem;
+            }
+
+            .user-position-card {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            .user-rank-number {
+                font-size: 2.5rem;
             }
         }
     </style>
@@ -486,13 +1019,45 @@
     <div class="leaderboard-container">
         <h1 class="leaderboard-title">🏆 Live Leaderboard</h1>
         
+        <!-- Search functionality -->
+        <div class="search-container">
+            <div class="search-icon">🔍</div>
+            <input 
+                type="text" 
+                class="search-input" 
+                id="search-input" 
+                placeholder="Enter your registration number to find your position..."
+                maxlength="20"
+            >
+        </div>
+
+        <!-- User position card -->
+        <div class="user-position-card" id="user-position-card">
+            <div class="user-position-title">
+                <span>🌟</span>
+                <span>Your Position</span>
+                <span>🌟</span>
+            </div>
+            <div class="user-position-content">
+                <div class="user-position-avatar" id="user-avatar"></div>
+                <div class="user-position-info">
+                    <h3 id="user-name">-</h3>
+                    <p id="user-reg">Registration: <span id="user-reg-number">-</span></p>
+                    <p>Score: <strong id="user-score">-</strong></p>
+                </div>
+                <div class="user-position-rank">
+                    <div class="user-rank-number" id="user-rank">-</div>
+                    <div class="user-rank-text">Position</div>
+                </div>
+            </div>
+        </div>
+        
         <div class="podium" id="podium"></div>
 
         <div class="leaderboard-table">
             <div class="table-header">
                 <span>Rank</span>
                 <span>Student</span>
-                <span>Registration</span>
                 <span>Score</span>
                 <span>Levels</span>
                 <span>Accuracy</span>
@@ -514,13 +1079,174 @@
     <script>
         let refreshInterval;
         let isLoading = false;
+        let currentLeaderboard = [];
+        let currentUserReg = null;
 
         // Initialize leaderboard
         document.addEventListener('DOMContentLoaded', function() {
             loadLeaderboard();
             // Auto-refresh every 30 seconds
             refreshInterval = setInterval(loadLeaderboard, 30000);
+            
+            // Setup search functionality
+            setupSearch();
+            
+            // Check for registration number in URL parameters
+            checkUrlForUser();
         });
+
+        function checkUrlForUser() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const regNumber = urlParams.get('reg');
+            
+            if (regNumber) {
+                // Pre-fill the search input
+                const searchInput = document.getElementById('search-input');
+                searchInput.value = regNumber;
+                // Set current user for highlighting
+                currentUserReg = regNumber.toUpperCase();
+                // Trigger search after a short delay to ensure leaderboard is loaded
+                setTimeout(() => {
+                    findAndHighlightUser(regNumber.toUpperCase());
+                }, 1000);
+            }
+        }
+
+        function setupSearch() {
+            const searchInput = document.getElementById('search-input');
+            let searchTimeout;
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const regNumber = this.value.trim().toUpperCase();
+                    if (regNumber) {
+                        findAndHighlightUser(regNumber);
+                    } else {
+                        clearUserHighlight();
+                    }
+                }, 300);
+            });
+
+            // Handle Enter key
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const regNumber = this.value.trim().toUpperCase();
+                    if (regNumber) {
+                        findAndHighlightUser(regNumber);
+                    }
+                }
+            });
+        }
+
+        function generateRobohashUrl(text, size = 100) {
+            // Use registration number or name as seed for consistent avatars
+            const seed = encodeURIComponent(text || 'default');
+            return `https://robohash.org/${seed}?size=${size}x${size}&set=set1`;
+        }
+
+        function findAndHighlightUser(regNumber) {
+            currentUserReg = regNumber;
+            const user = currentLeaderboard.find(student => 
+                student.registration_number.toUpperCase() === regNumber
+            );
+
+            if (user) {
+                showUserPositionCard(user);
+                highlightUserInTable(regNumber);
+                scrollToUser(regNumber);
+            } else {
+                hideUserPositionCard();
+                showUserNotFound(regNumber);
+            }
+        }
+
+        function showUserPositionCard(user) {
+            const card = document.getElementById('user-position-card');
+            const avatar = document.getElementById('user-avatar');
+            const name = document.getElementById('user-name');
+            const regNumber = document.getElementById('user-reg-number');
+            const score = document.getElementById('user-score');
+            const rank = document.getElementById('user-rank');
+
+            // Set avatar
+            avatar.innerHTML = `<img src="${generateRobohashUrl(user.registration_number, 100)}" alt="Avatar" onerror="this.parentElement.innerHTML='${getInitials(user.student_name)}'">`;
+            
+            name.textContent = user.student_name || 'Anonymous';
+            regNumber.textContent = user.registration_number;
+            score.textContent = user.final_score;
+            rank.textContent = `#${user.rank}`;
+
+            card.classList.add('show');
+        }
+
+        function hideUserPositionCard() {
+            const card = document.getElementById('user-position-card');
+            card.classList.remove('show');
+        }
+
+        function highlightUserInTable(regNumber) {
+            // Remove previous highlights
+            document.querySelectorAll('.table-row').forEach(row => {
+                row.classList.remove('current-user');
+            });
+
+            // Add highlight to current user
+            const rows = document.querySelectorAll('.table-row');
+            rows.forEach(row => {
+                const studentInfo = row.querySelector('.student-details h4');
+                if (studentInfo) {
+                    const rowRegNumber = row.dataset.regNumber;
+                    if (rowRegNumber === regNumber) {
+                        row.classList.add('current-user');
+                    }
+                }
+            });
+        }
+
+        function scrollToUser(regNumber) {
+            const rows = document.querySelectorAll('.table-row');
+            for (let row of rows) {
+                if (row.dataset.regNumber === regNumber) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    break;
+                }
+            }
+        }
+
+        function clearUserHighlight() {
+            currentUserReg = null;
+            hideUserPositionCard();
+            document.querySelectorAll('.table-row').forEach(row => {
+                row.classList.remove('current-user');
+            });
+        }
+
+        function showUserNotFound(regNumber) {
+            // Create a temporary notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(239, 68, 68, 0.95);
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                z-index: 10000;
+                font-size: 1rem;
+                font-weight: 600;
+                backdrop-filter: blur(10px);
+            `;
+            notification.textContent = `Registration number "${regNumber}" not found in leaderboard`;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
 
         async function loadLeaderboard() {
             if (isLoading) return;
@@ -561,6 +1287,8 @@
         }
 
         function displayLeaderboard(leaderboard) {
+            currentLeaderboard = leaderboard; // Store for search functionality
+            
             if (!leaderboard || leaderboard.length === 0) {
                 showEmptyState();
                 return;
@@ -571,6 +1299,11 @@
             
             // Display rest in table
             displayTable(leaderboard);
+
+            // Re-highlight user if they were previously highlighted
+            if (currentUserReg) {
+                highlightUserInTable(currentUserReg);
+            }
         }
 
         function displayPodium(top3) {
@@ -583,9 +1316,11 @@
                 const place = document.createElement('div');
                 place.className = `podium-place ${['first', 'second', 'third'][index]}`;
                 
+                const avatarHtml = `<img src="${generateRobohashUrl(student.registration_number, 100)}" alt="Avatar" onerror="this.parentElement.innerHTML='${getInitials(student.student_name)}'">`;
+                
                 place.innerHTML = `
                     <div class="podium-rank">${student.rank}</div>
-                    <div class="podium-avatar">${getInitials(student.student_name)}</div>
+                    <div class="podium-avatar">${avatarHtml}</div>
                     <div class="podium-name">${student.student_name || 'Anonymous'}</div>
                     <div class="podium-reg">${student.registration_number}</div>
                     <div class="podium-score">${student.final_score}</div>
@@ -602,14 +1337,14 @@
             leaderboard.forEach(student => {
                 const row = document.createElement('div');
                 row.className = 'table-row';
+                row.dataset.regNumber = student.registration_number.toUpperCase(); // For search functionality
                 
-                const rankClass = student.rank <= 10 ? 'top-10' : 
-                                 student.rank <= 50 ? 'top-50' : 'other';
+                const avatarHtml = `<img src="${generateRobohashUrl(student.registration_number, 48)}" alt="Avatar" onerror="this.parentElement.innerHTML='${getInitials(student.student_name)}'">`;
                 
                 row.innerHTML = `
-                    <div class="rank-badge ${rankClass}">${student.rank}</div>
+                    <div class="rank-badge ${student.rank === 1 ? 'rank-1' : student.rank === 2 ? 'rank-2' : student.rank === 3 ? 'rank-3' : student.rank <= 10 ? 'top-10' : student.rank <= 50 ? 'top-50' : 'other'}">${student.rank}</div>
                     <div class="student-info">
-                        <div class="student-avatar">${getInitials(student.student_name)}</div>
+                        <div class="student-avatar">${avatarHtml}</div>
                         <div class="student-details">
                             <h4>${student.student_name || 'Anonymous'}</h4>
                             <p>${student.registration_number}</p>

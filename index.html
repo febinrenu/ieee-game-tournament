@@ -10,6 +10,9 @@
     <!-- Welcome Screen -->
     <div id="welcome-screen" class="screen active">
         <div class="container">
+            <div class="welcome-header">
+                <button id="welcome-leaderboard-btn" class="btn btn--outline btn--sm leaderboard-corner-btn" title="View Live Leaderboard">🏆 Leaderboard</button>
+            </div>
             <div class="welcome-content">
                 <div class="ieee-logo">
                     <div class="logo-text">IEEE</div>
@@ -52,6 +55,7 @@
                         <h2 id="level-title">Binary Memory Pattern</h2>
                     </div>
                     <div class="game-stats">
+                        <button id="leaderboard-btn" class="btn btn--outline btn--sm" style="margin-right: 1rem;" title="View Live Leaderboard">🏆 Leaderboard</button>
                         <div class="timer" id="timer">10:00</div>
                         <div class="score">Score: <span id="score">0</span></div>
                     </div>
@@ -208,7 +212,8 @@
                 </div>
                 <div class="level-breakdown" id="level-breakdown"></div>
                 <div class="results-actions">
-                    <button id="restart-btn" class="btn btn--primary btn--lg">Play Again</button>
+                    <button id="view-leaderboard-btn" class="btn btn--primary btn--lg">View Leaderboard</button>
+                    <button id="restart-btn" class="btn btn--secondary btn--lg">Play Again</button>
                     <button id="share-btn" class="btn btn--outline btn--lg">Share Results</button>
                 </div>
             </div>

@@ -9,7 +9,7 @@ const gameConfig = {
             theme: "memory",
             description: "Memorize and reproduce binary patterns",
             gridSize: "4x4",
-            timeToMemorize: 3000,
+            timeToMemorize: 2000,
             maxAttempts: 3
         },
         {
@@ -58,7 +58,27 @@ let gameState = {
     registrationNumber: '',
     studentName: '', // Add student name for leaderboard
     sessionId: generateSessionId(), // Unique session identifier
-    levelPerformance: [] // Track performance per level for accuracy calculation
+    levelPerformance: [], // Track performance per level for accuracy calculation
+    levelStartTimes: {}, // Track when each level started
+    currentLevelStartTime: 0, // Track current level start time
+    
+    // Detailed analytics tracking
+    analytics: {
+        totalClicks: 0,
+        levelSwitches: 0,
+        hintsUsed: 0,
+        errorsMade: 0,
+        binaryPatternAttempts: 0,
+        pathfindingAlgorithmLength: 0,
+        firewallThreatsBlocked: 0,
+        firewallSafeAllowed: 0,
+        aiTrainingAccuracy: 0,
+        codingChallengeSolved: 'none',
+        deviceInfo: getDeviceInfo()
+    },
+    
+    // Anti-cheat variables
+    binaryPatternLocked: false // Prevent clicks during pattern display
 };
 
 // Generate unique session ID
@@ -66,19 +86,84 @@ function generateSessionId() {
     return 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
+// Get device information for analytics
+function getDeviceInfo() {
+    const userAgent = navigator.userAgent;
+    const screenWidth = window.screen.width;
+    const screenHeight = window.screen.height;
+    
+    let deviceType = 'desktop';
+    if (/iPhone|iPad|iPod|Android/i.test(userAgent)) {
+        deviceType = screenWidth <= 768 ? 'mobile' : 'tablet';
+    } else if (screenWidth <= 768) {
+        deviceType = 'mobile';
+    } else if (screenWidth <= 1024) {
+        deviceType = 'tablet';
+    }
+    
+    return {
+        userAgent: userAgent,
+        screenResolution: `${screenWidth}x${screenHeight}`,
+        deviceType: deviceType
+    };
+}
+
+// Track user interactions
+function trackClick() {
+    gameState.analytics.totalClicks++;
+}
+
+// Track errors
+function trackError() {
+    gameState.analytics.errorsMade++;
+}
+
 // Initialize game
 document.addEventListener('DOMContentLoaded', function() {
     initializeGame();
+    
+    // Add global click tracking
+    document.addEventListener('click', trackClick);
 });
 
 function initializeGame() {
     setupEventListeners();
+    
+    // Check for registration number in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const regNumber = urlParams.get('reg');
+    
+    if (regNumber) {
+        // Pre-fill the registration number if it exists in URL
+        document.getElementById('register-number').value = regNumber;
+        // Clear any validation errors
+        document.getElementById('registration-error').classList.add('hidden');
+        
+        // Check if we should auto-resume
+        const autoResume = urlParams.get('resume');
+        if (autoResume === 'true') {
+            // Try to get the student name from localStorage
+            const savedName = localStorage.getItem(`student_name_${regNumber}`);
+            if (savedName) {
+                document.getElementById('student-name').value = savedName;
+                // Auto-trigger resume check after a short delay
+                setTimeout(() => {
+                    const studentName = document.getElementById('student-name').value.trim();
+                    if (studentName) {
+                        registerUserInDatabase(studentName, regNumber);
+                    }
+                }, 500);
+            }
+        }
+    }
+    
     showScreen('welcome-screen');
 }
 
 function setupEventListeners() {
     // Welcome screen
     document.getElementById('start-btn').addEventListener('click', startGame);
+    document.getElementById('welcome-leaderboard-btn').addEventListener('click', viewLeaderboard);
     
     // Registration number input
     const registerInput = document.getElementById('register-number');
@@ -122,8 +207,15 @@ function setupEventListeners() {
     });
     
     // Results screen
+    document.getElementById('view-leaderboard-btn').addEventListener('click', viewLeaderboard);
     document.getElementById('restart-btn').addEventListener('click', restartGame);
     document.getElementById('share-btn').addEventListener('click', shareResults);
+    
+    // Header leaderboard button
+    const headerLeaderboardBtn = document.getElementById('header-leaderboard-btn');
+    if (headerLeaderboardBtn) {
+        headerLeaderboardBtn.addEventListener('click', viewLeaderboard);
+    }
     
     // Skip level buttons
     for (let i = 1; i <= 5; i++) {
@@ -178,23 +270,227 @@ function startGame() {
     // Hide error if validation passes
     errorDiv.classList.add('hidden');
     
-    // Store registration details in game state
-    gameState.registrationNumber = registerNumber;
-    gameState.studentName = studentName;
-    
-    gameState.startTime = Date.now();
-    gameState.isGameActive = true;
-    gameState.timeRemaining = gameConfig.totalTimeLimit;
-    gameState.currentLevel = 1;
-    gameState.score = 0;
-    gameState.levelsCompleted = 0;
-    gameState.levelScores = [];
-    gameState.levelPerformance = [];
-    gameState.completedLevels = []; // Reset completed levels
-    
-    showScreen('game-screen');
-    startTimer();
-    initializeLevel(1);
+    // Step 1: Register user in database
+    registerUserInDatabase(studentName, registerNumber);
+}
+
+async function registerUserInDatabase(studentName, registerNumber) {
+    try {
+        // First, check if user has existing progress
+        const progressResponse = await fetch(`${gameConfig.serverUrl}/api/get-progress/${registerNumber}`);
+        
+        if (progressResponse.ok) {
+            const progressData = await progressResponse.json();
+            if (progressData.success && progressData.user) {
+                // User exists, check their progress
+                const user = progressData.user;
+                
+                if (user.isCompleted) {
+                    // User has completed the tournament
+                    showNotification('Tournament Complete', 
+                        `You have already completed the tournament with a score of ${user.currentScore}. View the leaderboard to see your ranking.`, 
+                        'info', 6000);
+                    
+                    // Show completed status
+                    const errorDiv = document.getElementById('registration-error');
+                    errorDiv.innerHTML = `
+                        <div style="background: var(--color-bg-3); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                            <p><strong>Tournament already completed!</strong></p>
+                            <p>Score: ${user.currentScore} | Levels: ${user.completedLevels}/5</p>
+                            <button onclick="viewLeaderboard()" class="btn btn--primary">View Leaderboard</button>
+                        </div>
+                    `;
+                    errorDiv.classList.remove('hidden');
+                    return;
+                    
+                } else if (user.hasStarted && user.currentLevel > 1) {
+                    // User has partial progress, offer to resume
+                    showNotification('Progress Found', 
+                        `You have progress saved! Continue from Level ${user.currentLevel}.`, 
+                        'info', 6000);
+                    
+                    const errorDiv = document.getElementById('registration-error');
+                    errorDiv.innerHTML = `
+                        <div style="background: var(--color-bg-2); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                            <p><strong>Previous progress found!</strong></p>
+                            <p>Score: ${user.currentScore} | Level: ${user.currentLevel}/5 | Time: ${formatTime(user.timeRemaining)}</p>
+                            <button onclick="resumeGame('${registerNumber}', '${studentName}')" class="btn btn--primary">Resume Game</button>
+                        </div>
+                    `;
+                    errorDiv.classList.remove('hidden');
+                    return;
+                    
+                } else {
+                    // User registered but hasn't started or is on level 1
+                    await startActualGame(studentName, registerNumber);
+                    return;
+                }
+            }
+        }
+        
+        // User doesn't exist, register them
+        const registerResponse = await fetch(`${gameConfig.serverUrl}/api/register-user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                registrationNumber: registerNumber,
+                studentName: studentName,
+                sessionId: gameState.sessionId
+            })
+        });
+
+        const data = await registerResponse.json();
+
+        if (data.success) {
+            showNotification('Registration Successful', 'Starting your tournament...', 'success', 2000);
+            await startActualGame(studentName, registerNumber);
+        } else {
+            throw new Error(data.message);
+        }
+        
+    } catch (error) {
+        console.error('Registration error:', error);
+        showNotification('Registration Failed', error.message || 'Failed to register. Please try again.', 'error', 4000);
+        
+        const errorDiv = document.getElementById('registration-error');
+        errorDiv.textContent = 'Registration failed. Please try again.';
+        errorDiv.classList.remove('hidden');
+    }
+}
+
+// Resume game from saved progress
+async function resumeGame(registerNumber, studentName) {
+    try {
+        const progressResponse = await fetch(`${gameConfig.serverUrl}/api/get-progress/${registerNumber}`);
+        const progressData = await progressResponse.json();
+        
+        if (progressData.success && progressData.user) {
+            const user = progressData.user;
+            
+            // Restore game state
+            gameState.registrationNumber = user.registrationNumber;
+            gameState.studentName = user.studentName;
+            gameState.score = user.currentScore;
+            gameState.timeRemaining = user.timeRemaining;
+            gameState.currentLevel = user.currentLevel;
+            gameState.levelsCompleted = user.completedLevels;
+            gameState.startTime = Date.now() - (600000 - user.timeRemaining); // Approximate start time
+            gameState.isGameActive = true;
+            
+            // Restore analytics
+            gameState.analytics = { ...gameState.analytics, ...user.analytics };
+            
+            // Mark completed levels
+            gameState.completedLevels = [];
+            Object.entries(user.levelStatuses).forEach(([levelKey, status]) => {
+                const levelNum = parseInt(levelKey.replace('level', ''));
+                if (status === 'completed' || status === 'skipped') {
+                    gameState.completedLevels.push(levelNum);
+                }
+            });
+            
+            showNotification('Game Resumed', `Welcome back! Continuing from Level ${user.currentLevel}`, 'success', 3000);
+            showScreen('game-screen');
+            startTimer();
+            initializeLevel(user.currentLevel);
+            
+        } else {
+            throw new Error('Failed to load progress');
+        }
+    } catch (error) {
+        console.error('Resume error:', error);
+        showNotification('Resume Failed', 'Could not load your progress. Please try again.', 'error');
+    }
+}
+
+async function startActualGame(studentName, registerNumber) {
+    try {
+        // Step 2: Mark game as started in database
+        const gameStartTime = new Date().toISOString();
+        
+        const response = await fetch(`${gameConfig.serverUrl}/api/start-game`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                registrationNumber: registerNumber,
+                gameStartTime: gameStartTime
+            })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            // Save student name in localStorage for resume functionality
+            localStorage.setItem(`student_name_${registerNumber}`, studentName);
+            
+            // Add registration number to URL for leaderboard tracking
+            const url = new URL(window.location.href);
+            url.searchParams.set('reg', registerNumber);
+            window.history.replaceState({}, '', url);
+            
+            // Initialize game state
+            gameState.registrationNumber = registerNumber;
+            gameState.studentName = studentName;
+            gameState.startTime = Date.now();
+            gameState.isGameActive = true;
+            gameState.timeRemaining = gameConfig.totalTimeLimit;
+            gameState.currentLevel = 1;
+            gameState.score = 0;
+            gameState.levelsCompleted = 0;
+            gameState.levelScores = [];
+            gameState.levelPerformance = [];
+            gameState.completedLevels = []; // Reset completed levels
+            gameState.levelStartTimes = {}; // Reset level timing
+            gameState.currentLevelStartTime = 0;
+            
+            // Reset analytics for new game
+            gameState.analytics = {
+                totalClicks: 0,
+                levelSwitches: 0,
+                hintsUsed: 0,
+                errorsMade: 0,
+                binaryPatternAttempts: 0,
+                pathfindingAlgorithmLength: 0,
+                firewallThreatsBlocked: 0,
+                firewallSafeAllowed: 0,
+                aiTrainingAccuracy: 0,
+                codingChallengeSolved: 'none',
+                deviceInfo: getDeviceInfo()
+            };
+            
+            // Start the game UI
+            showScreen('game-screen');
+            updateLevelNavigation();
+            initializeLevel(1);
+            startTimer();
+            
+            showNotification(
+                'Tournament Started!', 
+                'Good luck! You have 10 minutes to complete all levels.',
+                'success',
+                5000
+            );
+            
+        } else {
+            showNotification(
+                'Start Game Failed', 
+                result.message || 'Failed to start the tournament.',
+                'error'
+            );
+        }
+        
+    } catch (error) {
+        console.error('Start game error:', error);
+        showNotification(
+            'Connection Error', 
+            'Failed to start the game. Please try again.',
+            'error'
+        );
+    }
 }
 
 function startTimer() {
@@ -242,6 +538,9 @@ function showScreen(screenId) {
 function initializeLevel(levelNum) {
     gameState.currentLevel = levelNum;
     gameState.levelStartScore = gameState.score; // Track score at start of level
+    gameState.currentLevelStartTime = Date.now(); // Track when level starts
+    gameState.levelStartTimes[levelNum] = gameState.currentLevelStartTime;
+    
     document.getElementById('current-level').textContent = levelNum;
     document.getElementById('level-title').textContent = gameConfig.levels[levelNum - 1].name;
     updateProgressBar();
@@ -338,6 +637,7 @@ function initializeBinaryMemory() {
     gameState.binaryPattern = generateBinaryPattern();
     gameState.userPattern = new Array(16).fill(false);
     gameState.attemptsLeft = 3;
+    gameState.binaryPatternLocked = false; // Reset lock state
     updateAttemptsDisplay();
     
     // Reset button states
@@ -384,6 +684,14 @@ function generateBinaryPattern() {
 function showBinaryPattern() {
     const cells = document.querySelectorAll('.binary-cell');
     
+    // Lock pattern to prevent cheating
+    gameState.binaryPatternLocked = true;
+    
+    // Add visual indicator that clicking is disabled and use CSS pointer-events: none
+    cells.forEach(cell => {
+        cell.classList.add('locked');
+    });
+    
     // Show pattern
     gameState.binaryPattern.forEach((active, index) => {
         if (active) {
@@ -394,17 +702,29 @@ function showBinaryPattern() {
     // Hide pattern after 3 seconds
     setTimeout(() => {
         cells.forEach(cell => {
-            cell.classList.remove('active');
+            cell.classList.remove('active', 'locked');
         });
+        
+        // Unlock pattern for user interaction
+        gameState.binaryPatternLocked = false;
         
         // Enable interaction
         document.getElementById('show-pattern').classList.add('hidden');
         document.getElementById('submit-pattern').classList.remove('hidden');
         document.getElementById('clear-pattern').classList.remove('hidden');
+        
+        // Show instruction for user
+        showNotification('Your Turn!', 'Now click the cells to recreate the pattern you saw.', 'info', 2000);
     }, 3000);
 }
 
 function toggleBinaryCell(event) {
+    // Prevent cheating: don't allow clicks during pattern display
+    if (gameState.binaryPatternLocked) {
+        showNotification('Wait!', 'Pattern is being displayed. Wait for it to finish.', 'warning', 1500);
+        return;
+    }
+    
     const index = parseInt(event.target.dataset.index);
     const cell = event.target;
     
@@ -415,13 +735,16 @@ function toggleBinaryCell(event) {
 function clearBinaryPattern() {
     gameState.userPattern = new Array(16).fill(false);
     document.querySelectorAll('.binary-cell').forEach(cell => {
-        cell.classList.remove('active', 'correct', 'incorrect');
+        cell.classList.remove('active', 'correct', 'incorrect', 'locked');
     });
 }
 
 function submitBinaryPattern() {
     const cells = document.querySelectorAll('.binary-cell');
     let correct = true;
+    
+    // Track binary pattern attempt
+    gameState.analytics.binaryPatternAttempts++;
     
     // Decrease attempts first (regardless of correctness)
     gameState.attemptsLeft--;
@@ -447,6 +770,7 @@ function submitBinaryPattern() {
         setTimeout(() => completeLevel(100, 4 - gameState.attemptsLeft), 1500);
     } else {
         playErrorSound();
+        trackError(); // Track the error
         
         if (gameState.attemptsLeft <= 0) {
             showNotification('Level Complete', '3 attempts completed! Level blocked. Moving to next level.', 'warning');
@@ -459,6 +783,8 @@ function submitBinaryPattern() {
                 document.getElementById('show-pattern').classList.remove('hidden');
                 document.getElementById('submit-pattern').classList.add('hidden');
                 document.getElementById('clear-pattern').classList.add('hidden');
+                // Reset lock state for next attempt
+                gameState.binaryPatternLocked = false;
             }, 1500);
         }
     }
@@ -679,6 +1005,9 @@ function runAlgorithm() {
         return;
     }
     
+    // Track algorithm length for analytics
+    gameState.analytics.pathfindingAlgorithmLength = gameState.algorithmSequence.length;
+    
     gameState.robotPosition = {x: 0, y: 0, direction: 'right'};
     updateRobotDisplay();
     executeAlgorithmStep(0);
@@ -891,6 +1220,7 @@ function spawnPacket() {
         if (packet.parentNode) {
             if (!isThreat) {
                 gameState.safeAllowed++;
+                gameState.analytics.firewallSafeAllowed++; // Track for analytics
             }
             packet.remove();
             updateFirewallStats();
@@ -903,11 +1233,13 @@ function handlePacketClick(packet, isThreat) {
     
     if (isThreat) {
         gameState.threatsBlocked++;
+        gameState.analytics.firewallThreatsBlocked++; // Track for analytics
         packet.classList.add('blocked');
         playBlockSound();
     } else {
         // Blocked a safe packet (mistake)
         packet.classList.add('blocked');
+        trackError(); // Track the error
         playErrorSound();
     }
     
@@ -1161,11 +1493,17 @@ function checkAITrainingSuccess() {
         else performanceMessage = "📊 AI Training completed. Moving forward!";
         
         showNotification('AI Training Complete!', `${performanceMessage}\nAccuracy: ${Math.round(gameState.aiAccuracy)}% | Score: +${scoreAwarded} points`, 'success');
-        setTimeout(() => completeLevel(gameState.aiAccuracy, 1), 1500);
+        setTimeout(() => {
+            gameState.analytics.aiTrainingAccuracy = gameState.aiAccuracy; // Track for analytics
+            completeLevel(gameState.aiAccuracy, 1);
+        }, 1500);
     } else {
         playErrorSound();
         showNotification('AI Training Complete', `⚠️ AI Training completed with low accuracy!\nAccuracy: ${Math.round(gameState.aiAccuracy)}% | Score: +${scoreAwarded} points\nMoving to next level.`, 'warning');
-        setTimeout(() => completeLevel(gameState.aiAccuracy, 1), 1500);
+        setTimeout(() => {
+            gameState.analytics.aiTrainingAccuracy = gameState.aiAccuracy; // Track for analytics
+            completeLevel(gameState.aiAccuracy, 1);
+        }, 1500);
     }
 }
 
@@ -1450,6 +1788,7 @@ function executeCode() {
         updateScore(600);
         createParticles();
         playSuccessSound();
+        gameState.analytics.codingChallengeSolved = gameState.codingChallenge.title; // Track which challenge was solved
         showNotification('Perfect Solution!', 'Algorithm completed correctly! +600 points', 'success');
         setTimeout(() => {
             completeLevel(100, 1);
@@ -1457,6 +1796,7 @@ function executeCode() {
         }, 1500);
     } else {
         playErrorSound();
+        trackError(); // Track the error
         showNotification('Try Again', 'Algorithm incorrect. Try rearranging the code blocks!', 'error');
     }
 }
@@ -1473,15 +1813,61 @@ function clearCode() {
 // Game Flow Functions
 // Track level completion with performance data
 function completeLevel(performance = 100, attempts = 1) {
+    // Calculate time spent on this level
+    const levelEndTime = Date.now();
+    const timeSpent = gameState.currentLevelStartTime ? levelEndTime - gameState.currentLevelStartTime : 0;
+    
     // Store performance data for this level
     gameState.levelPerformance.push({
         level: gameState.currentLevel,
         performance: performance, // 0-100 percentage
         attempts: attempts,
-        score: gameState.score - gameState.levelStartScore
+        score: gameState.score - gameState.levelStartScore,
+        timeSpent: timeSpent, // Time spent on this level in milliseconds
+        completed: performance > 0, // True if level was completed, false if skipped
+        startTime: gameState.levelStartTimes[gameState.currentLevel],
+        endTime: levelEndTime
     });
     
+    // Save progress to server immediately
+    saveLevelProgressToServer(gameState.currentLevel, performance > 0 ? 'completed' : 'skipped', timeSpent);
+    
     nextLevel();
+}
+
+// Save individual level progress to server
+async function saveLevelProgressToServer(levelNumber, levelStatus, levelTime) {
+    try {
+        const response = await fetch(`${gameConfig.serverUrl}/api/update-level-progress`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                registrationNumber: gameState.registrationNumber,
+                levelNumber: levelNumber,
+                levelStatus: levelStatus, // 'completed', 'skipped'
+                levelScore: gameState.score - gameState.levelStartScore,
+                levelTime: levelTime,
+                currentTotalScore: gameState.score,
+                timeRemaining: gameState.timeRemaining,
+                analytics: gameState.analytics
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log(`Level ${levelNumber} progress saved: ${levelStatus}`);
+        } else {
+            console.error('Failed to save level progress:', data.message);
+            // Don't show error to user as this shouldn't interrupt gameplay
+        }
+        
+    } catch (error) {
+        console.error('Error saving level progress:', error);
+        // Continue gameplay even if save fails
+    }
 }
 
 function nextLevel() {
@@ -1494,7 +1880,11 @@ function nextLevel() {
     const levelScore = gameState.score - gameState.levelStartScore;
     gameState.levelScores.push(levelScore);
     
-    gameState.levelsCompleted++;
+    // Only increment levelsCompleted if the level was actually completed (not skipped)
+    const currentLevelPerformance = gameState.levelPerformance[gameState.levelPerformance.length - 1];
+    if (currentLevelPerformance && currentLevelPerformance.completed) {
+        gameState.levelsCompleted++;
+    }
     
     if (gameState.currentLevel >= 5) {
         completeGame();
@@ -1539,6 +1929,10 @@ async function submitScoreToServer() {
     const correctAttempts = gameState.levelPerformance.filter(level => level.completed).length;
     const accuracyRate = totalAttempts > 0 ? (correctAttempts / totalAttempts) * 100 : 0;
 
+    // Calculate total time taken
+    const gameEndTime = Date.now();
+    const totalTimeTaken = gameState.startTime ? gameEndTime - gameState.startTime : gameConfig.totalTimeLimit - gameState.timeRemaining;
+
     const scoreData = {
         registrationNumber: gameState.registrationNumber,
         studentName: gameState.studentName,
@@ -1547,7 +1941,13 @@ async function submitScoreToServer() {
         accuracyRate: Math.round(accuracyRate * 100) / 100, // Round to 2 decimal places
         timeRemaining: gameState.timeRemaining,
         levelBreakdown: gameState.levelPerformance,
-        sessionId: gameState.sessionId
+        sessionId: gameState.sessionId,
+        gameStartTime: gameState.startTime ? new Date(gameState.startTime).toISOString() : null,
+        gameEndTime: new Date(gameEndTime).toISOString(),
+        totalTimeTaken: totalTimeTaken,
+        
+        // Include detailed analytics
+        analytics: gameState.analytics
     };
 
     try {
@@ -1705,6 +2105,16 @@ function showLevelBreakdown() {
     });
 }
 
+function viewLeaderboard() {
+    // Navigate to leaderboard with registration number preserved in URL
+    const regNumber = gameState.registrationNumber;
+    if (regNumber) {
+        window.open(`./leaderboard.html?reg=${encodeURIComponent(regNumber)}`, '_blank');
+    } else {
+        window.open('./leaderboard.html', '_blank');
+    }
+}
+
 function restartGame() {
     gameState = {
         currentLevel: 1,
@@ -1718,11 +2128,31 @@ function restartGame() {
         isGameActive: false,
         timer: null,
         registrationNumber: '',
-        levelPerformance: []
+        studentName: '',
+        levelPerformance: [],
+        levelStartTimes: {},
+        currentLevelStartTime: 0,
+        sessionId: generateSessionId(),
+        
+        // Reset analytics
+        analytics: {
+            totalClicks: 0,
+            levelSwitches: 0,
+            hintsUsed: 0,
+            errorsMade: 0,
+            binaryPatternAttempts: 0,
+            pathfindingAlgorithmLength: 0,
+            firewallThreatsBlocked: 0,
+            firewallSafeAllowed: 0,
+            aiTrainingAccuracy: 0,
+            codingChallengeSolved: 'none',
+            deviceInfo: getDeviceInfo()
+        }
     };
     
     // Clear registration form
     document.getElementById('register-number').value = '';
+    document.getElementById('student-name').value = '';
     document.getElementById('registration-error').classList.add('hidden');
     
     showScreen('welcome-screen');
@@ -1754,6 +2184,12 @@ Time Remaining: ${formatTime(gameState.timeRemaining)}
             showNotification('Share Results', text, 'info', 10000);
         });
     }
+}
+
+// Generate resume URL for users with partial progress
+function generateResumeUrl(registrationNumber) {
+    const baseUrl = window.location.origin + window.location.pathname;
+    return `${baseUrl}?reg=${registrationNumber}&resume=true`;
 }
 
 // Utility Functions

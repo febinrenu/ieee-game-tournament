@@ -772,6 +772,29 @@ body {
 }
 
 /* Welcome Screen */
+.welcome-header {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  z-index: 10;
+}
+
+.leaderboard-corner-btn {
+  background: rgba(var(--color-teal-500-rgb), 0.1);
+  border: 1px solid var(--color-teal-500);
+  color: var(--color-teal-500);
+  backdrop-filter: blur(10px);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--duration-normal) var(--ease-standard);
+}
+
+.leaderboard-corner-btn:hover {
+  background: var(--color-teal-500);
+  color: var(--color-btn-primary-text);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--color-teal-500-rgb), 0.3);
+}
+
 .welcome-content {
   display: flex;
   flex-direction: column;
@@ -780,6 +803,7 @@ body {
   height: 100vh;
   text-align: center;
   padding: var(--space-8);
+  padding-top: 4rem; /* Account for header button */
 }
 
 .ieee-logo {
@@ -1055,6 +1079,18 @@ body {
 .binary-cell.incorrect {
   background: var(--color-error);
   animation: cellError 0.5s ease-out;
+}
+
+.binary-cell.locked {
+  cursor: not-allowed !important;
+  opacity: 0.8 !important;
+  transform: none !important;
+  pointer-events: none !important; /* Completely disable mouse events */
+}
+
+.binary-cell.locked:hover {
+  border-color: var(--color-border) !important;
+  transform: none !important;
 }
 
 .attempts-counter {
@@ -1847,6 +1883,16 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .welcome-header {
+    top: 1rem;
+    right: 1rem;
+  }
+  
+  .leaderboard-corner-btn {
+    padding: var(--space-6) var(--space-12);
+    font-size: var(--font-size-xs);
+  }
+  
   .container {
     padding-right: var(--space-12);
     padding-left: var(--space-12);
@@ -1865,6 +1911,7 @@ body {
   
   .welcome-content {
     padding: var(--space-16);
+    padding-top: 3rem; /* Account for corner button */
   }
   
   .tournament-title {
