@@ -1513,10 +1513,10 @@ function showPathfindingInstructions() {
         <div style="background: var(--color-bg-3); padding: var(--space-12); border-radius: var(--radius-md); margin: var(--space-8) 0;">
             <p><strong>Quick Start Guide:</strong></p>
             <ol style="margin: 0; padding-left: var(--space-20);">
-                <li>🟦 <strong>START</strong> = Blue square (robot begins here)</li>
+                <li>🟩 <strong>START</strong> = Green square (robot begins here)</li>
                 <li>🔴 <strong>GOAL</strong> = Red square (get robot here to win)</li>
-                <li>⬜ <strong>WALLS</strong> = White squares (robot cannot pass through)</li>
-                <li>📝 <strong>Drag blocks</strong> from left to create a path sequence</li>
+                <li>⬜ <strong>WALLS</strong> = Violet squares (robot cannot pass through)</li>
+                <li>📝 <strong>Drag or click blocks</strong> from the left to add to your sequence; <strong>click a step</strong> in the sequence to remove it</li>
                 <li>▶️ <strong>Click "Run Algorithm"</strong> to test your solution</li>
             </ol>
         </div>
@@ -1631,6 +1631,8 @@ function addBlockToSequence(action) {
     
     sequenceArea.appendChild(blockElement);
     gameState.algorithmSequence.push(action);
+    // Auto-scroll sequence to bottom so latest block is visible
+    sequenceArea.scrollTop = sequenceArea.scrollHeight;
 }
 
 function getBlockText(action) {
@@ -1836,7 +1838,6 @@ function showFirewallInstructions() {
             <li>🔴 <strong>Threat packets (red):</strong> Click to block them</li>
             <li>⏱️ Test runs for 30 seconds</li>
             <li>🎯 <strong>Goal:</strong> Block ≥75% of threats AND allow ≥70% of safe packets</li>
-            <li>📊 <strong>Minimum activity:</strong> Block at least 5 threats and allow at least 8 safe packets</li>
             <li>⚡ Packets move slowly from left to right - you have more time now!</li>
             <li>💡 NOTE: Click the threat when its on the firewall or after the firewall</li>
         </ul>
@@ -1910,6 +1911,24 @@ function spawnPacket() {
 }
 
 function handlePacketClick(packet, isThreat) {
+    // Only allow clicking when packet is on/after the firewall line
+    const firewallArea = document.getElementById('firewall-area');
+    const firewallLine = firewallArea.querySelector('.firewall-line');
+    const areaRect = firewallArea.getBoundingClientRect();
+    const lineRect = firewallLine.getBoundingClientRect();
+    const packetRect = packet.getBoundingClientRect();
+
+    // Compute packet center X relative to area
+    const packetCenterX = packetRect.left + packetRect.width / 2;
+    const lineX = lineRect.left;
+
+    if (packetCenterX < lineX) {
+        // Not yet at designated area; ignore click and give subtle feedback
+        packet.classList.add('not-allowed');
+        setTimeout(() => packet.classList.remove('not-allowed'), 200);
+        return;
+    }
+
     packet.style.pointerEvents = 'none';
     packet.isClicked = true; // Mark as clicked to prevent timeout counting
     

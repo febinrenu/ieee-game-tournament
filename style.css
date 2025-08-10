@@ -749,6 +749,7 @@ select.form-control {
 body {
   background: linear-gradient(135deg, var(--color-bg-1), var(--color-bg-8));
   height: 100vh;
+  /* Allow screens to manage their own scrolling */
   overflow: hidden;
 }
 
@@ -808,10 +809,32 @@ body {
 .ieee-logo {
   margin-bottom: var(--space-8);
   animation: logoGlow 3s ease-in-out infinite alternate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: clamp(180px, 40vw, 320px);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .ieee-logo.small {
   margin-bottom: var(--space-16);
+  max-width: clamp(160px, 30vw, 260px);
+}
+
+.ieee-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+@media (max-width: 480px) {
+  .ieee-logo { max-width: 70vw; }
+  .ieee-logo.small { max-width: 60vw; }
 }
 
 .logo-text {
@@ -1072,10 +1095,11 @@ body {
 .binary-cell.correct {
   background: var(--color-success);
   animation: cellSuccess 0.5s ease-out;
+  transform: scale(1.03);
 }
 
 .binary-cell.incorrect {
-  background: var(--color-error);
+  background: linear-gradient(180deg, rgba(34,211,238,0.22), rgba(34,211,238,0.12));
   animation: cellError 0.5s ease-out;
 }
 
@@ -1257,6 +1281,10 @@ body {
   flex-direction: column;
   gap: var(--space-8);
   touch-action: manipulation;
+  /* Make algorithm sequence scrollable */
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: calc(var(--space-12) - 2px); /* room for scrollbar without layout shift */
 }
 
 .sequence-block {
@@ -1332,6 +1360,12 @@ body {
   animation: packetBlocked 0.5s ease-out forwards;
 }
 
+/* Visual hint when packet click is not yet allowed */
+.packet.not-allowed {
+  cursor: not-allowed !important;
+  transform: scale(1.05);
+}
+
 /* Level 4: AI Training Challenge */
 .ai-progress {
   display: flex;
@@ -1347,6 +1381,13 @@ body {
   border-radius: var(--radius-base);
   padding: var(--space-24);
   max-width: 600px;
+.option-btn {
+  transition: background-color var(--duration-fast) var(--ease-standard),
+              transform var(--duration-fast) var(--ease-standard);
+}
+.option-btn:hover {
+  transform: translateY(-1px);
+}
   margin: 0 auto;
 }
 
@@ -1500,6 +1541,8 @@ body {
   min-height: 200px;
   font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
+  /* Allow horizontal scroll for long lines */
+  overflow-x: auto;
 }
 
 .code-line {
@@ -1508,6 +1551,9 @@ body {
   color: white;
   margin: var(--space-4) 0;
   border-radius: var(--radius-sm);
+  /* Preserve Python indentation */
+  white-space: pre;
+  tab-size: 4;
 }
 
 .code-visualization {
@@ -1523,11 +1569,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 100vh;
+  justify-content: flex-start;
   text-align: center;
   padding: var(--space-8);
-  overflow-y: auto;
+  /* Let the screen (full page) handle scrolling instead of this card */
+  max-width: 960px;
+  margin: 0 auto;
 }
 
 .results-header h1 {

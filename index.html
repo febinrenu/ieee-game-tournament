@@ -19,8 +19,7 @@
             </div>
             <div class="welcome-content">
                 <div class="ieee-logo">
-                    <div class="logo-text">IEEE</div>
-                    <div class="logo-subtitle">Computer Society</div>
+                    <img src="IEEE_Computer_Society_Logo-removebg-preview(1).png" alt="IEEE Computer Society" style="max-width: 260px; height: auto; display: block; margin: 0 auto;" />
                 </div>
                 <h1 class="tournament-title">Inauguration Tournament</h1>
                 <p class="tournament-description">Test your skills across 5 challenging levels of computer science mastery</p>
@@ -83,6 +82,7 @@
                 <div id="level-1" class="level-container active">
                     <div class="level-description">
                         <p>Memorize the binary pattern, then reproduce it by clicking the cells</p>
+                        <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">Tip: Tap/click cells to toggle between 0 and 1. You have limited attempts—use Show Pattern to preview and Clear to restart your input.</p>
                         <div class="attempts-counter">Attempts: <span id="attempts-left">3</span> remaining</div>
                     </div>
                     <div id="binary-grid" class="binary-grid"></div>
@@ -97,8 +97,8 @@
                 <!-- Level 2: Algorithm Pathfinding -->
                 <div id="level-2" class="level-container">
                     <div class="level-description">
-                        <p><strong>🎯 Mission:</strong> Program the robot to navigate from START (green) to GOAL (red)!</p>
-                        <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">💡 Tip: You can either drag blocks or simply click them to add to your sequence</p>
+                        <p><strong>🎯 Mission:</strong> Program the robot to navigate from START (green) to GOAL (red)! Add moves by either dragging blocks or clicking them.</p>
+                        <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">💡 Tip: You can drag blocks into the sequence or simply click to append; re-order or clear if you make a mistake.</p>
                     </div>
                     <div class="pathfinding-container">
                         <div id="algorithm-blocks" class="algorithm-blocks">
@@ -123,6 +123,7 @@
                 <div id="level-3" class="level-container">
                     <div class="level-description">
                         <p>Block malicious packets (red) and allow safe ones (green)</p>
+                        <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">💡 Tip: You can only click a packet after it crosses the firewall line—watch for the cursor change near the line.</p>
                         <div class="firewall-stats">
                             <div>Safe Allowed: <span id="safe-allowed">0</span>/<span id="total-safe">0</span></div>
                             <div>Threats Blocked: <span id="threats-blocked">0</span>/<span id="total-threats">0</span></div>
@@ -141,6 +142,7 @@
                 <div id="level-4" class="level-container">
                     <div class="level-description">
                         <p>Train the AI by selecting correct responses to scenarios</p>
+                        <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">💡 Tip: Click the best option (no dragging). The progress bar shows your training progress for this level.</p>
                         <div class="ai-progress">
                             
                             <div class="progress-bar small">
@@ -161,7 +163,7 @@
                 <!-- Level 5: Real-time Coding Duel -->
                 <div id="level-5" class="level-container">
                     <div class="level-description">
-                        <p><strong>🎯 Mission:</strong> Complete the algorithm using drag-and-drop code blocks</p>
+                        <p><strong>🎯 Mission:</strong> Complete the algorithm using drag-and-drop or click-to-add code blocks</p>
                         <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">💡 Tip: Drag the colored blocks to the editor or click them to add. Arrange them in the correct order!</p>
                         <div id="coding-challenge-title" class="challenge-title"></div>
                     </div>
@@ -190,8 +192,7 @@
             <div class="results-content">
                 <div class="results-header">
                     <div class="ieee-logo small">
-                        <div class="logo-text">IEEE</div>
-                        <div class="logo-subtitle">Computer Society</div>
+                        <img src="IEEE_Computer_Society_Logo-removebg-preview(1).png" alt="IEEE Computer Society" style="max-width: 220px; height: auto; display: block; margin: 0 auto;" />
                     </div>
                     <h1>Tournament Complete!</h1>
                     <div class="registration-display">
