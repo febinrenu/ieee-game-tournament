@@ -440,7 +440,7 @@ pre code {
 
 .btn--outline {
   background: transparent;
-  border: 1px solid var(--color-border);
+  border: none;
   color: var(--color-text);
 }
 
@@ -478,8 +478,8 @@ pre code {
   line-height: 1.5;
   color: var(--color-text);
   background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-base);
+  border: none;
+  border-radius: var(--radius-sm);
   transition: border-color var(--duration-fast) var(--ease-standard),
     box-shadow var(--duration-fast) var(--ease-standard);
 }
@@ -544,9 +544,9 @@ select.form-control {
 /* Card component */
 .card {
   background-color: var(--color-surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-card-border);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-md);
+  border: none;
+  box-shadow: none;
   overflow: hidden;
   transition: box-shadow var(--duration-normal) var(--ease-standard);
 }
@@ -562,7 +562,6 @@ select.form-control {
 .card__header,
 .card__footer {
   padding: var(--space-16);
-  border-bottom: 1px solid var(--color-card-border-inner);
 }
 
 /* Status indicators - simplified with CSS variables */
@@ -781,7 +780,7 @@ body {
 
 .leaderboard-corner-btn {
   background: rgba(var(--color-teal-500-rgb), 0.1);
-  border: 1px solid var(--color-teal-500);
+  border: none;
   color: var(--color-teal-500);
   backdrop-filter: blur(10px);
   font-weight: var(--font-weight-medium);
@@ -856,13 +855,13 @@ body {
   padding: var(--space-12) var(--space-20);
   border-radius: var(--radius-full);
   font-weight: var(--font-weight-medium);
-  border: 1px solid var(--color-border);
+  border: none;
 }
 
 /* Game Header */
 .game-header {
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: none;
   padding: var(--space-16) 0;
   position: sticky;
   top: 0;
@@ -942,7 +941,7 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid var(--color-border);
+  border: none;
   background: var(--color-surface);
   color: var(--color-text);
   font-weight: var(--font-weight-bold);
@@ -981,7 +980,6 @@ body {
 /* Level Instructions */
 .level-instructions {
   background: var(--color-bg-1);
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-16);
   margin: var(--space-16) 0;
@@ -1050,7 +1048,7 @@ body {
 .binary-cell {
   aspect-ratio: 1;
   background: var(--color-surface);
-  border: 2px solid var(--color-border);
+  border: none;
   border-radius: var(--radius-base);
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-standard);
@@ -1121,7 +1119,7 @@ body {
 
 .block {
   background: var(--color-surface);
-  border: 2px solid var(--color-border);
+  border: none;
   padding: var(--space-12) var(--space-16);
   border-radius: var(--radius-base);
   cursor: grab;
@@ -1166,7 +1164,7 @@ body {
 .path-cell {
   aspect-ratio: 1;
   background: var(--color-surface);
-  border: 2px solid var(--color-border);
+  border: none;
   border-radius: var(--radius-sm);
   position: relative;
   min-height: 45px;
@@ -1245,14 +1243,14 @@ body {
 
 .algorithm-sequence {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius-base);
   padding: var(--space-16);
 }
 
 .sequence-blocks {
   min-height: 200px;
-  border: 2px dashed var(--color-border);
+  border: 2px dashed transparent;
   border-radius: var(--radius-base);
   padding: var(--space-12);
   display: flex;
@@ -1345,7 +1343,7 @@ body {
 
 .ai-scenario {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius-base);
   padding: var(--space-24);
   max-width: 600px;
@@ -1463,7 +1461,7 @@ body {
 
 .code-editor {
   background: var(--color-surface);
-  border: 2px dashed var(--color-border);
+  border: 2px dashed transparent;
   border-radius: var(--radius-base);
   padding: var(--space-16);
   min-height: 300px;
@@ -1496,7 +1494,7 @@ body {
 
 .code-lines {
   background: var(--color-background);
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius-sm);
   padding: var(--space-12);
   min-height: 200px;
@@ -1514,7 +1512,7 @@ body {
 
 .code-visualization {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius-base);
   padding: var(--space-16);
   min-height: 200px;
@@ -1574,7 +1572,7 @@ body {
   text-align: center;
   padding: var(--space-16);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius-base);
 }
 
@@ -1602,7 +1600,7 @@ body {
   align-items: center;
   padding: var(--space-16);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius-base);
   margin-bottom: var(--space-8);
 }
@@ -1699,7 +1697,7 @@ body {
 
 .notification {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius-md);
   padding: var(--space-16);
   box-shadow: var(--shadow-lg);
@@ -1875,8 +1873,8 @@ body {
   text-align: center;
   font-size: var(--font-size-lg);
   padding: var(--space-12) var(--space-16);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border: none;
+  border-radius: var(--radius-base);
   background: var(--color-surface);
   transition: all var(--duration-fast) var(--ease-standard);
 }
@@ -1906,7 +1904,7 @@ body {
   padding: var(--space-8) var(--space-16);
   background: var(--color-secondary);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  border: none;
 }
 
 .registration-display span {
@@ -2101,7 +2099,7 @@ body {
     padding: var(--space-12);
     background: var(--color-surface);
     color: var(--color-text);
-    border: 2px solid var(--color-border);
+  border: none;
     font-weight: var(--font-weight-medium);
   }
   
@@ -2157,7 +2155,8 @@ body {
   .path-cell {
     min-height: 35px;
     font-size: var(--font-size-sm);
-    border-width: 1px;
+  border: none;
+  border-radius: var(--radius-sm);
   }
   
   .path-cell.robot::after {
@@ -2199,6 +2198,8 @@ body {
     width: 30px;
     height: 30px;
     font-size: var(--font-size-xs);
+  border: none;
+  border-radius: var(--radius-sm);
   }
   
   .timer {
@@ -2214,7 +2215,7 @@ body {
     font-size: var(--font-size-sm);
     background: var(--color-primary);
     color: var(--color-btn-primary-text);
-    border: 2px solid var(--color-primary-hover);
+  border: none;
     font-weight: var(--font-weight-semibold);
   }
   

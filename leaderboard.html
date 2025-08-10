@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IEEE Tournament Leaderboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="theme.css">
     <style>
         :root {
             --primary-color: #2563eb;
@@ -90,7 +94,7 @@
 
         .stats-bar {
             background: var(--card-bg);
-            border-radius: 12px;
+            border-radius: 10px;
             padding: 1rem 2rem;
             margin: 2rem auto;
             max-width: 1200px;
@@ -145,7 +149,7 @@
 
         .podium-place {
             background: var(--card-bg);
-            border-radius: 20px;
+            border-radius: 12px;
             padding: 2.5rem 1.5rem;
             text-align: center;
             box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
@@ -153,7 +157,7 @@
             overflow: hidden;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 0;
         }
 
         .podium-place::before {
@@ -175,8 +179,8 @@
             order: 2;
             transform: scale(1.08) translateY(-10px);
             z-index: 3;
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), var(--card-bg));
-            border: 2px solid var(--gold);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.12), var(--card-bg));
+            border: 0;
         }
 
         .podium-place.first::before {
@@ -190,8 +194,8 @@
         .podium-place.second {
             order: 1;
             z-index: 2;
-            background: linear-gradient(135deg, rgba(192, 192, 192, 0.1), var(--card-bg));
-            border: 2px solid var(--silver);
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.12), var(--card-bg));
+            border: 0;
         }
 
         .podium-place.second::before {
@@ -201,8 +205,8 @@
         .podium-place.third {
             order: 3;
             z-index: 1;
-            background: linear-gradient(135deg, rgba(205, 127, 50, 0.1), var(--card-bg));
-            border: 2px solid var(--bronze);
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.12), var(--card-bg));
+            border: 0;
         }
 
         .podium-place.third::before {
@@ -304,11 +308,11 @@
 
         .leaderboard-table {
             background: var(--card-bg);
-            border-radius: 20px;
+            border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 16px 56px rgba(0, 0, 0, 0.15);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 0;
         }
 
         .table-header {
