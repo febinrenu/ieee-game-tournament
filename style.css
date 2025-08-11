@@ -1092,6 +1092,12 @@ body {
   box-shadow: 0 0 20px rgba(0, 102, 204, 0.5);
 }
 
+/* Brighter selection specifically for Level 1 (selected boxes) */
+#level-1 .binary-cell.active {
+  background: #00A8FF; /* brighter blue */
+  box-shadow: 0 0 28px rgba(0, 168, 255, 0.7);
+}
+
 .binary-cell.correct {
   background: var(--color-success);
   animation: cellSuccess 0.5s ease-out;
@@ -1340,6 +1346,10 @@ body {
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-standard);
   animation: packetMove 5s linear;
+  /* Improve mobile/touch behavior */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none; /* ensure pointerdown fires immediately without scrolling */
+  user-select: none;
 }
 
 .packet.safe {
@@ -1737,9 +1747,12 @@ body {
   z-index: 1001;
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  align-items: flex-end; /* prevent children from stretching full width */
+  gap: 0; /* use sibling margins for better cross-browser consistency */
   max-width: 400px;
   pointer-events: none;
+  /* Use only the space needed; height grows with content */
+  height: auto;
 }
 
 .notification {
@@ -1751,10 +1764,18 @@ body {
   pointer-events: auto;
   transform: translateX(100%);
   opacity: 0;
-  transition: all var(--duration-normal) var(--ease-standard);
-  display: flex;
+  /* Avoid animating layout properties to prevent large gaps */
+  transition: transform var(--duration-normal) var(--ease-standard),
+              opacity var(--duration-normal) var(--ease-standard);
+  display: inline-flex; /* size to content */
   align-items: flex-start;
   gap: var(--space-12);
+  /* Allow content to wrap naturally and size by content */
+  word-wrap: break-word;
+  white-space: normal;
+  width: auto;
+  max-width: 100%;
+  margin: 0; /* reset default margins */
 }
 
 .notification.show {
@@ -1979,12 +2000,13 @@ body {
   .notification-container {
     top: var(--space-16);
     right: var(--space-16);
-    left: var(--space-16);
-    max-width: none;
+  /* Do not force full width on mobile; keep intrinsic width */
+  left: auto;
+  max-width: min(92vw, 420px);
   }
 
   .notification {
-    padding: var(--space-12);
+  padding: var(--space-12);
   }
   
   .welcome-content {
@@ -2280,4 +2302,9 @@ body {
     font-size: var(--font-size-base);
     margin-bottom: var(--space-8);
   }
+}
+
+/* Compact vertical spacing between stacked notifications */
+.notification + .notification {
+  margin-top: var(--space-8);
 }

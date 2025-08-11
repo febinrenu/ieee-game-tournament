@@ -1889,7 +1889,19 @@ function spawnPacket() {
     packet.style.top = Math.random() * 340 + 'px';
     packet.style.left = '-50px';
     
-    packet.addEventListener('click', () => handlePacketClick(packet, isThreat));
+    // Improved input handling: evaluate position at press time to avoid mobile click delay
+    const handlePointerDown = (e) => handlePacketPointerDown(e, packet, isThreat);
+    if (window.PointerEvent) {
+        packet.addEventListener('pointerdown', handlePointerDown, { passive: false });
+    } else {
+        packet.addEventListener('touchstart', (e) => handlePacketPointerDown(e, packet, isThreat), { passive: false });
+        packet.addEventListener('mousedown', (e) => handlePacketPointerDown(e, packet, isThreat));
+    }
+    // Fallback click (desktop or if pointer events unavailable). Will no-op if already handled
+    packet.addEventListener('click', (e) => {
+        if (packet.isClicked) return;
+        handlePacketClick(packet, isThreat);
+    });
     
     // Mark packet as not clicked initially
     packet.isClicked = false;
@@ -1908,6 +1920,29 @@ function spawnPacket() {
             updateFirewallStats();
         }
     }, 5000);
+}
+
+// Handle packet press immediately (touch/pointer), preventing pre-firewall taps on mobile
+function handlePacketPointerDown(event, packet, isThreat) {
+    try { if (event) event.preventDefault(); } catch (e) {}
+    // Only allow clicking when packet is on/after the firewall line (measured at press time)
+    const firewallArea = document.getElementById('firewall-area');
+    const firewallLine = firewallArea.querySelector('.firewall-line');
+    const lineRect = firewallLine.getBoundingClientRect();
+    const packetRect = packet.getBoundingClientRect();
+
+    const packetCenterX = packetRect.left + packetRect.width / 2;
+    const lineX = lineRect.left;
+
+    if (packetCenterX < lineX) {
+        // Not yet at designated area; ignore press and show subtle feedback
+        packet.classList.add('not-allowed');
+        setTimeout(() => packet.classList.remove('not-allowed'), 200);
+        return;
+    }
+
+    // Treat as valid click
+    handlePacketClick(packet, isThreat);
 }
 
 function handlePacketClick(packet, isThreat) {
